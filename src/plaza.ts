@@ -143,9 +143,16 @@ function buildTable(index: number, handlers: PlazaHandlers): void {
   MeshRenderer.setPlane(board)
   Material.setPbrMaterial(board, { albedoColor: Color4.fromHexString('#241B14'), roughness: 1 })
 
+  // Text sits 0.01m in front of the backing panel (toward the campfire) so the
+  // two planes never z-fight — same trick as the plaza stand below.
+  const toCenterLen = Math.hypot(CENTER.x - awayX, CENTER.z - awayZ)
   const boardText = engine.addEntity()
   Transform.create(boardText, {
-    position: Vector3.create(awayX, 1.6, awayZ),
+    position: Vector3.create(
+      awayX + ((CENTER.x - awayX) / toCenterLen) * 0.01,
+      1.6,
+      awayZ + ((CENTER.z - awayZ) / toCenterLen) * 0.01
+    ),
     rotation: Quaternion.fromEulerDegrees(0, toCenter + 180, 0)
   })
   TextShape.create(boardText, {

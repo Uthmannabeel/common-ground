@@ -1,5 +1,5 @@
 import { SparkId, sparkRarity } from './content/sparks'
-import { Icebreaker, pairIcebreakers, soloIcebreakers } from './content/icebreakers'
+import { ICEBREAKERS, Icebreaker, pairIcebreakers, soloIcebreakers } from './content/icebreakers'
 
 // M4: deterministic, offline-tolerant, instant on a phone. No runtime AI.
 
@@ -63,5 +63,8 @@ export function pickIcebreaker(
 
   const rarest = [...mine].sort((a, b) => sparkRarity(b) - sparkRarity(a))[0]
   const pool = soloIcebreakers(rarest)
-  return pool[seed % pool.length]
+  if (pool.length > 0) return pool[seed % pool.length]
+  // Content bank should always cover every spark; if a pool is ever empty,
+  // any prompt beats a crash on `.prompt` of undefined.
+  return ICEBREAKERS[seed % ICEBREAKERS.length]
 }

@@ -45,7 +45,8 @@ function createStore(): Store {
   const listeners: (() => void)[] = []
 
   return {
-    getLocalPlayer: () => local,
+    // Copy out so callers can't mutate store state around the setters.
+    getLocalPlayer: () => ({ sparks: [...local.sparks], table: local.table }),
     setSparks: (sparks) => {
       local.sparks = [...sparks]
     },

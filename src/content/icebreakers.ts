@@ -245,6 +245,102 @@ export const ICEBREAKERS: Icebreaker[] = [
     sparks: ['movies', 'games'],
     prompt: 'Game adaptations of movies, movies of games — who wins?',
     answers: ['Games make better movies now', 'Movies still can\'t play fair', 'Both should stop trying']
+  },
+  {
+    id: 'music-food-1',
+    sparks: ['music', 'food'],
+    prompt: 'Cooking with music on — what\'s actually happening in that kitchen?',
+    answers: ['A full concert, food waits', 'Perfect rhythm chopping', 'Something is burning']
+  },
+  {
+    id: 'music-sports-1',
+    sparks: ['music', 'sports'],
+    prompt: 'Walk-out song before the match of your life. The vibe is…',
+    answers: ['Menace, pure menace', 'Something the crowd sings', 'Calm — scare them with silence']
+  },
+  {
+    id: 'music-tech-1',
+    sparks: ['music', 'tech'],
+    prompt: 'Vinyl warmth or lossless precision?',
+    answers: ['Vinyl, feel over specs', 'Lossless, ears deserve truth', 'My cheap earbuds betray me']
+  },
+  {
+    id: 'movies-sports-1',
+    sparks: ['movies', 'sports'],
+    prompt: 'Best sports movie moment — why does it work on you?',
+    answers: ['The comeback formula', 'It\'s really about the team', 'I cry at training montages']
+  },
+  {
+    id: 'movies-travel-1',
+    sparks: ['movies', 'travel'],
+    prompt: 'You can enter the setting of any film for a week:',
+    answers: ['Somewhere lush and green', 'A neon city at night', 'Middle of nowhere, no signal']
+  },
+  {
+    id: 'movies-tech-1',
+    sparks: ['movies', 'tech'],
+    prompt: 'Which movie tech do you actually want first?',
+    answers: ['The hoverboard', 'The universal translator', 'The memory eraser, no questions']
+  },
+  {
+    id: 'movies-art-1',
+    sparks: ['movies', 'art'],
+    prompt: 'A film so beautiful the plot didn\'t matter. Worth it?',
+    answers: ['Every frame a painting, yes', 'Story first, always', 'Beauty IS the story']
+  },
+  {
+    id: 'food-sports-1',
+    sparks: ['food', 'sports'],
+    prompt: 'Matchday food rules — what\'s non-negotiable?',
+    answers: ['The exact same lucky meal', 'Whatever the stadium sells', 'I can\'t eat, too nervous']
+  },
+  {
+    id: 'food-games-1',
+    sparks: ['food', 'games'],
+    prompt: 'Gaming snack tier list — what\'s S-tier?',
+    answers: ['Clean one-hand finger food', 'A whole meal between rounds', 'Nothing near my controller']
+  },
+  {
+    id: 'food-tech-1',
+    sparks: ['food', 'tech'],
+    prompt: 'A robot cooks your grandmother\'s best dish perfectly. Do you eat it?',
+    answers: ['Food is food, serve it', 'It\'s missing the point', 'Only if she approves first']
+  },
+  {
+    id: 'food-art-1',
+    sparks: ['food', 'art'],
+    prompt: 'Plating: does food need to be beautiful?',
+    answers: ['We eat with our eyes first', 'Taste forgives everything', 'Beautiful food is smaller, no']
+  },
+  {
+    id: 'sports-tech-1',
+    sparks: ['sports', 'tech'],
+    prompt: 'Video refereeing — has the machine ruined the game?',
+    answers: ['Justice is worth the wait', 'Give me human chaos back', 'Blame the operators, not the tech']
+  },
+  {
+    id: 'sports-art-1',
+    sparks: ['sports', 'art'],
+    prompt: 'Is a perfect goal art?',
+    answers: ['The purest kind there is', 'Art needs intention, so no', 'Ask me after a replay']
+  },
+  {
+    id: 'games-travel-1',
+    sparks: ['games', 'travel'],
+    prompt: 'Open-world maps vs the real world — which explores better?',
+    answers: ['Real world, no fast travel', 'Games, zero mosquitoes', 'I get lost in both']
+  },
+  {
+    id: 'games-art-1',
+    sparks: ['games', 'art'],
+    prompt: 'A game you\'d hang on a wall — what earns it the frame?',
+    answers: ['Its whole visual world', 'One unforgettable scene', 'The concept art beats the game']
+  },
+  {
+    id: 'travel-tech-1',
+    sparks: ['travel', 'tech'],
+    prompt: 'Phone dies on day one of the trip. What actually happens?',
+    answers: ['Freedom, honestly', 'Mild panic, paper maps', 'The trip is over']
   }
 ]
 
