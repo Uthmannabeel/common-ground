@@ -1,8 +1,10 @@
+import { isServer } from '@dcl/sdk/network'
 import { getPlayer } from '@dcl/sdk/src/players'
 import { todaysQuestion } from './content/dailyQuestions'
 import { SPARK_BY_ID, SparkId } from './content/sparks'
 import { chooseTable, pickIcebreaker } from './pairing'
 import { buildPlaza, TABLE_COUNT, TABLE_NAMES } from './plaza'
+import { initServer } from './server'
 import { store } from './state'
 import { setupUi, showCard, showPicker, showToast } from './ui'
 
@@ -15,6 +17,12 @@ function playerName(): string {
 }
 
 export function main() {
+  // Single codebase, two roles: the headless Multiplayer Server owns all
+  // shared state; clients render and send intents. See src/server.ts.
+  if (isServer()) {
+    initServer()
+    return
+  }
   buildPlaza({ onTableTapped, onQuestionStandTapped })
   setupUi()
   showPicker(onSparksConfirmed)
