@@ -36,6 +36,7 @@ const WOOD = Color4.fromHexString('#5C4033')
 const STONE = Color4.fromHexString('#6E6E6E')
 const GROUND = Color4.fromHexString('#3A2E2A')
 const FLAME = Color4.fromHexString('#FF7A29')
+const CUE = Color4.fromHexString('#C7B9A6')
 
 export interface PlazaHandlers {
   onTableTapped: (table: number) => void
@@ -135,6 +136,20 @@ function buildTable(index: number, handlers: PlazaHandlers): void {
     textColor: Color4.fromHexString('#F3E9DC')
   })
 
+  // Touch has no hover, so the affordance must be visible: a quiet cue line
+  // under the table name. The hoverText stays — it labels the mobile
+  // interaction button once the table is aimed at.
+  const cue = engine.addEntity()
+  Transform.create(cue, {
+    position: Vector3.create(pos.x, 2.0, pos.z),
+    rotation: Quaternion.fromEulerDegrees(0, toCenter + 180, 0)
+  })
+  TextShape.create(cue, {
+    text: 'tap the table for a question',
+    fontSize: 1,
+    textColor: CUE
+  })
+
   // Answer wall: a board behind the table, facing the campfire.
   const awayX = pos.x + (pos.x - CENTER.x) * 0.35
   const awayZ = pos.z + (pos.z - CENTER.z) * 0.35
@@ -213,6 +228,18 @@ function buildQuestionStand(handlers: PlazaHandlers): void {
     text: '',
     fontSize: 1,
     textColor: Color4.fromHexString('#F3E9DC')
+  })
+
+  // Visible tap cue on the fire-facing side of the pillar (touch has no hover).
+  const cue = engine.addEntity()
+  Transform.create(cue, {
+    position: Vector3.create(8, 1.2, 10.33),
+    rotation: Quaternion.fromEulerDegrees(0, 180, 0)
+  })
+  TextShape.create(cue, {
+    text: 'tap the pillar to answer',
+    fontSize: 1,
+    textColor: CUE
   })
 
   pointerEventsSystem.onPointerDown(
