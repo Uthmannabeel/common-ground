@@ -2,17 +2,18 @@ import { isServer } from '@dcl/sdk/network'
 import { getPlayer } from '@dcl/sdk/src/players'
 import { todaysQuestion } from './content/dailyQuestions'
 import { SPARK_BY_ID, SparkId } from './content/sparks'
-import { emberArc, initEffects, playChime, startAmbience } from './effects'
-import { initLanterns } from './lanterns'
+import { burstAt, emberArc, initEffects, playChime, showTrail, startAmbience } from './effects'
+import { igniteLantern, initLanterns } from './lanterns'
 import { chooseTable, pastPartnerSparks, pickIcebreaker } from './pairing'
 import { buildPlaza, fireFlare, STAND_POSITION, TABLE_COUNT, TABLE_NAMES, TABLE_POSITIONS } from './plaza'
+import { initStones, showStones } from './stones'
 // Static imports so registerMessages/defineComponent run at module load on
 // both roles — the engine seals after initial load. Server-only code (which
 // imports @dcl/sdk/server) is dynamically imported inside isServer() instead.
 import './shared/messages'
 import './shared/schemas'
 import { store } from './state'
-import { setupUi, showCard, showPicker, showReveal, showToast } from './ui'
+import { setupUi, showPicker, showReveal, showToast } from './ui'
 
 function dayIndex(): number {
   return Math.floor(Date.now() / 86_400_000)
@@ -36,8 +37,14 @@ export async function main() {
   }
   store.initNetwork()
   store.onAnswerAck(onAnswerAck)
+  store.onMatchEvent((ev) => {
+    // Every present player shares the burst where a match just fired.
+    burstAt(ev.table === -1 ? STAND_POSITION : TABLE_POSITIONS[ev.table] ?? STAND_POSITION)
+    fireFlare(0.4)
+  })
   buildPlaza({ onTableTapped, onQuestionStandTapped })
   initLanterns()
+  initStones()
   initEffects(() => fireFlare())
   setupUi()
   showPicker(onSparksConfirmed)
@@ -63,7 +70,9 @@ function onTableTapped(table: number): void {
   // at concurrency 1. Live pairing (G4) only swaps in a present player here.
   const theirs = pastPartnerSparks(me.sparks, store.getWallEntries(table), playerAddress())
   const icebreaker = pickIcebreaker(me.sparks, theirs, dayIndex(), table)
-  showCard(`The ${TABLE_NAMES[table]} table asks`, icebreaker.prompt, icebreaker.answers, (answer) => {
+  // Story stones: the question and answers are physical tap targets in the
+  // world — the judged path never opens a 2D card.
+  showStones(TABLE_POSITIONS[table], icebreaker.prompt, icebreaker.answers, (answer) => {
     submitAnswer({
       table,
       promptId: icebreaker.id,
@@ -77,7 +86,7 @@ function onTableTapped(table: number): void {
 
 function onQuestionStandTapped(): void {
   const q = todaysQuestion(Date.now())
-  showCard("Today's Question", q.prompt, q.answers, (answer) => {
+  showStones(STAND_POSITION, q.prompt, q.answers, (answer) => {
     submitAnswer({
       table: -1,
       promptId: `daily:${q.prompt}`,
@@ -105,6 +114,7 @@ function onAnswerAck(ack: {
   matchAnswer: string
   matchRung: number
   matchSparks: string[]
+  matchKey: string
   sameCount: number
   totalCount: number
 }): void {
@@ -136,6 +146,11 @@ function onAnswerAck(ack: {
       line = `${ack.matchName} was here before you — they said "${ack.matchAnswer}"`
   }
   playChime()
+  // The climax: the matched lantern ignites with their name and a trail of
+  // light grows across the ground from the fire to it. The reveal screen is
+  // the accessible summary that follows.
+  const lanternPos = igniteLantern(ack.matchKey, ack.matchName)
+  if (lanternPos) showTrail(lanternPos)
   showReveal({
     name: ack.matchName,
     line,

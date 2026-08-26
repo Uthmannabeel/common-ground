@@ -1,4 +1,4 @@
-import { engine, Entity, Material, MeshRenderer, Transform } from '@dcl/sdk/ecs'
+import { Billboard, engine, Entity, Material, MeshRenderer, TextShape, Transform } from '@dcl/sdk/ecs'
 import { Color4, Vector3 } from '@dcl/sdk/math'
 import { SPARK_BY_ID, SparkId } from './content/sparks'
 import { WallEntry } from './shared/types'
@@ -30,10 +30,56 @@ interface Lantern {
 }
 
 const lanterns = new Map<string, Lantern>()
+let namePlate: Entity | null = null
+/** The ignited lantern survives display-cap eviction while it carries the name. */
+let pinnedKey: string | null = null
 
 export function initLanterns(): void {
   store.onWallChange(rebuild)
   rebuild()
+}
+
+/**
+ * The matched lantern ignites: brighter, larger head, and the one shared
+ * name plate moves above it — the name at the end of the trail. The lantern
+ * is created on demand if it sits beyond the per-board display cap (it is
+ * still real data, just old).
+ */
+export function igniteLantern(key: string, name: string): Vector3 | null {
+  pinnedKey = key
+  let lantern = lanterns.get(key)
+  if (!lantern) {
+    const entry = findEntryByKey(key)
+    if (!entry) return null
+    rebuildOne(entry)
+    lantern = lanterns.get(key)
+    if (!lantern) return null
+  }
+  const head = Material.getMutableOrNull(lantern.head)
+  if (head?.material?.$case === 'pbr') head.material.pbr.emissiveIntensity = 5
+  const t = Transform.getMutableOrNull(lantern.head)
+  const pos = t ? t.position : null
+  if (t) t.scale = Vector3.create(0.36, 0.42, 0.36)
+  if (pos) {
+    if (namePlate === null) {
+      namePlate = engine.addEntity()
+      Billboard.create(namePlate)
+      TextShape.create(namePlate, { text: '', fontSize: 2, textColor: Color4.fromHexString('#F3E9DC') })
+    }
+    Transform.createOrReplace(namePlate, { position: Vector3.create(pos.x, 1.75, pos.z) })
+    TextShape.getMutable(namePlate).text = name
+    return Vector3.create(pos.x, 1.14, pos.z)
+  }
+  return null
+}
+
+function findEntryByKey(key: string): WallEntry | null {
+  for (const table of [-1, 0, 1, 2, 3]) {
+    for (const e of store.getWallEntries(table)) {
+      if (e.address !== '' && entryKey(e) === key) return e
+    }
+  }
+  return null
 }
 
 function entryKey(e: WallEntry): string {
@@ -80,7 +126,7 @@ function rebuild(): void {
   }
 
   for (const [key, lantern] of lanterns) {
-    if (!wanted.has(key)) {
+    if (!wanted.has(key) && key !== pinnedKey) {
       engine.removeEntity(lantern.post)
       engine.removeEntity(lantern.head)
       lanterns.delete(key)
@@ -89,30 +135,36 @@ function rebuild(): void {
 
   for (const [key, e] of wanted) {
     if (lanterns.has(key)) continue
-    const pos = lanternPosition(e)
-    const color = lanternColor(e)
-
-    const post = engine.addEntity()
-    Transform.create(post, {
-      position: Vector3.create(pos.x, 0.5, pos.z),
-      scale: Vector3.create(0.07, 1.0, 0.07)
-    })
-    MeshRenderer.setCylinder(post)
-    Material.setPbrMaterial(post, { albedoColor: POST, roughness: 1 })
-
-    const head = engine.addEntity()
-    Transform.create(head, {
-      position: Vector3.create(pos.x, 1.14, pos.z),
-      scale: Vector3.create(0.26, 0.3, 0.26)
-    })
-    MeshRenderer.setBox(head)
-    Material.setPbrMaterial(head, {
-      albedoColor: color,
-      emissiveColor: color,
-      emissiveIntensity: 2.2,
-      roughness: 1
-    })
-
-    lanterns.set(key, { post, head })
+    rebuildOne(e)
   }
+}
+
+function rebuildOne(e: WallEntry): void {
+  const key = entryKey(e)
+  if (lanterns.has(key)) return
+  const pos = lanternPosition(e)
+  const color = lanternColor(e)
+
+  const post = engine.addEntity()
+  Transform.create(post, {
+    position: Vector3.create(pos.x, 0.5, pos.z),
+    scale: Vector3.create(0.07, 1.0, 0.07)
+  })
+  MeshRenderer.setCylinder(post)
+  Material.setPbrMaterial(post, { albedoColor: POST, roughness: 1 })
+
+  const head = engine.addEntity()
+  Transform.create(head, {
+    position: Vector3.create(pos.x, 1.14, pos.z),
+    scale: Vector3.create(0.26, 0.3, 0.26)
+  })
+  MeshRenderer.setBox(head)
+  Material.setPbrMaterial(head, {
+    albedoColor: color,
+    emissiveColor: color,
+    emissiveIntensity: 2.2,
+    roughness: 1
+  })
+
+  lanterns.set(key, { post, head })
 }

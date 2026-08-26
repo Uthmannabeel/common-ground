@@ -31,7 +31,18 @@ export const room = registerMessages({
     /** Which rung matched: 1 same answer+shared spark · 2 shared spark · 3 same answer · 4 anyone on the wall · 0 none. */
     matchRung: Schemas.Int,
     matchSparks: Schemas.Array(Schemas.String),
+    /** `address:promptId:dayIndex` of the matched entry — the key of its lantern. '' when no match. */
+    matchKey: Schemas.String,
     sameCount: Schemas.Int,
     totalCount: Schemas.Int
+  }),
+
+  // Server -> ALL clients: a match just fired at this board, so co-present
+  // players share the burst. Transient effect — a message, not synced state.
+  matchEvent: Schemas.Map({
+    table: Schemas.Int,
+    nameA: Schemas.String,
+    nameB: Schemas.String,
+    rung: Schemas.Int
   })
 })

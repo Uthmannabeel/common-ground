@@ -33,8 +33,17 @@ export interface AnswerAck {
   matchAnswer: string
   matchRung: number
   matchSparks: string[]
+  /** Lantern key of the matched entry — '' when no match. */
+  matchKey: string
   sameCount: number
   totalCount: number
+}
+
+export interface MatchEvent {
+  table: number
+  nameA: string
+  nameB: string
+  rung: number
 }
 
 export interface Store {
@@ -47,6 +56,8 @@ export interface Store {
   onWallChange(listener: () => void): void
   /** Fires when the server answers a postAnswer from this client. */
   onAnswerAck(listener: (ack: AnswerAck) => void): void
+  /** Fires on every client when any match fires anywhere in the World. */
+  onMatchEvent(listener: (ev: MatchEvent) => void): void
   /** True while a server heartbeat has been observed recently. */
   isServerAlive(): boolean
   getEmbers(): number
@@ -63,6 +74,7 @@ function createStore(): Store & { initNetwork(): void } {
   const local: PlayerState = { sparks: [], table: -1 }
   const wallListeners: (() => void)[] = []
   const ackListeners: ((ack: AnswerAck) => void)[] = []
+  const matchListeners: ((ev: MatchEvent) => void)[] = []
 
   // Answers optimistically shown until the same entry arrives via sync
   // (or the server rejects it in the ack).
@@ -154,6 +166,9 @@ function createStore(): Store & { initNetwork(): void } {
         }
         for (const l of ackListeners) l(ack)
       })
+      room.onMessage('matchEvent', (data) => {
+        for (const l of matchListeners) l(data as MatchEvent)
+      })
     },
     // Copy out so callers can't mutate store state around the setters.
     getLocalPlayer: () => ({ sparks: [...local.sparks], table: local.table }),
@@ -178,6 +193,9 @@ function createStore(): Store & { initNetwork(): void } {
     },
     onAnswerAck: (listener) => {
       ackListeners.push(listener)
+    },
+    onMatchEvent: (listener) => {
+      matchListeners.push(listener)
     },
     isServerAlive: () => heartbeatSeenAt !== 0 && Date.now() - heartbeatSeenAt < HEARTBEAT_FRESHNESS_MS,
     getEmbers: () => {

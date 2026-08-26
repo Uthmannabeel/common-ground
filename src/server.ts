@@ -1,6 +1,17 @@
-import { engine, Entity } from '@dcl/sdk/ecs'
+import {
+  AvatarAnchorPointType,
+  AvatarAttach,
+  engine,
+  Entity,
+  Material,
+  MeshRenderer,
+  PlayerIdentityData,
+  Transform
+} from '@dcl/sdk/ecs'
+import { Color4, Vector3 } from '@dcl/sdk/math'
 import { syncEntity } from '@dcl/sdk/network'
 import { Storage } from '@dcl/sdk/server'
+import { SPARK_BY_ID, SparkId } from './content/sparks'
 import { room } from './shared/messages'
 import { CGFire, CGHeartbeat, CGWall } from './shared/schemas'
 import { BOARDS, WALL_CAP, WallEntry, dayIndexNow, wallStorageKey } from './shared/types'
@@ -149,6 +160,7 @@ function registerHandlers(): void {
     Storage.player.set(address, 'sparks', JSON.stringify(sparks)).then((ok) => {
       if (!ok) console.log(`[SERVER] sparks write failed for ${address}`)
     })
+    attachCharms(address, sparks as SparkId[])
   })
 
   room.onMessage('postAnswer', (data, context) => {
@@ -168,7 +180,7 @@ function registerHandlers(): void {
     if (answered.has(dedupKey)) {
       room.send(
         'answerAck',
-        { promptId, accepted: false, reason: 'You already answered this one today. Come back tomorrow.', matchName: '', matchAnswer: '', matchRung: 0, matchSparks: [], sameCount: 0, totalCount: 0 },
+        { promptId, accepted: false, reason: 'You already answered this one today. Come back tomorrow.', matchName: '', matchAnswer: '', matchRung: 0, matchSparks: [], matchKey: '', sameCount: 0, totalCount: 0 },
         { to: [context.from] }
       )
       return
@@ -214,11 +226,18 @@ function registerHandlers(): void {
         matchAnswer: match ? match.entry.answer : '',
         matchRung: match ? match.rung : 0,
         matchSparks: match ? match.entry.sparks ?? [] : [],
+        matchKey: match ? `${match.entry.address}:${match.entry.promptId}:${match.entry.dayIndex}` : '',
         sameCount,
         totalCount
       },
       { to: [context.from] }
     )
+
+    // Co-present players share the moment: everyone sees the burst at this
+    // board when a match fires.
+    if (match) {
+      room.send('matchEvent', { table, nameA: author, nameB: match.entry.author, rung: match.rung })
+    }
   })
 }
 
@@ -254,18 +273,80 @@ function findMatch(
   return null
 }
 
+// ── Avatar charms ──────────────────────────────────────────────────────
+// Server-created so every client sees them: three glowing orbs at the spine
+// in the player's spark colours. Synced per the per-player entity rules —
+// auto-allocated ids, identity in the AvatarAttach avatarId itself.
+
+const charms = new Map<string, Entity[]>()
+
+function attachCharms(address: string, sparks: SparkId[]): void {
+  removeCharms(address)
+  const orbs: Entity[] = []
+  sparks.forEach((spark, i) => {
+    const color = SPARK_BY_ID.get(spark)?.color
+    if (!color) return
+    const orb = engine.addEntity()
+    Transform.create(orb, {
+      position: Vector3.create((i - 1) * 0.22, 0.32, 0.16),
+      scale: Vector3.create(0.09, 0.09, 0.09)
+    })
+    MeshRenderer.setSphere(orb)
+    Material.setPbrMaterial(orb, {
+      albedoColor: Color4.fromHexString(color),
+      emissiveColor: Color4.fromHexString(color),
+      emissiveIntensity: 3,
+      roughness: 1
+    })
+    AvatarAttach.create(orb, { avatarId: address, anchorPointId: AvatarAnchorPointType.AAPT_SPINE })
+    syncEntity(orb, [
+      Transform.componentId,
+      MeshRenderer.componentId,
+      Material.componentId,
+      AvatarAttach.componentId
+    ])
+    orbs.push(orb)
+  })
+  charms.set(address, orbs)
+}
+
+function removeCharms(address: string): void {
+  const orbs = charms.get(address)
+  if (!orbs) return
+  for (const orb of orbs) engine.removeEntity(orb)
+  charms.delete(address)
+}
+
+/** Charms of players who left the scene are swept every few seconds. */
+function sweepCharms(): void {
+  const present = new Set<string>()
+  for (const [, identity] of engine.getEntitiesWith(PlayerIdentityData)) {
+    present.add(identity.address.toLowerCase())
+  }
+  for (const address of [...charms.keys()]) {
+    if (!present.has(address)) removeCharms(address)
+  }
+}
+
 let heartbeatAcc = 0
 let flushAcc = 0
 let flushing = false
+let sweepAcc = 0
 
 function serverTickSystem(dt: number): void {
   heartbeatAcc += dt * 1000
   flushAcc += dt * 1000
+  sweepAcc += dt * 1000
 
   if (heartbeatAcc >= HEARTBEAT_MS && heartbeatEntity !== null) {
     heartbeatAcc = 0
     const hb = CGHeartbeat.getMutableOrNull(heartbeatEntity)
     if (hb) hb.at = Date.now()
+  }
+
+  if (sweepAcc >= 5000) {
+    sweepAcc = 0
+    sweepCharms()
   }
 
   if (flushAcc >= FLUSH_MS && dirty.size > 0 && !flushing) {
