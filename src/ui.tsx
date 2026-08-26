@@ -22,6 +22,14 @@ type Screen =
       onAnswer: (answer: string) => void
     }
   | { kind: 'toast'; text: string; until: number }
+  | { kind: 'reveal'; r: Reveal }
+
+export interface Reveal {
+  name: string
+  line: string
+  sharedSparks: string[]
+  count: string
+}
 
 let screen: Screen = { kind: 'none' }
 let picked: SparkId[] = []
@@ -46,6 +54,11 @@ export function showToast(text: string, seconds = 4): void {
   screen = { kind: 'toast', text, until: Date.now() + seconds * 1000 }
 }
 
+/** The Spark Match moment. Stays up until dismissed — it is the screenshot. */
+export function showReveal(r: Reveal): void {
+  screen = { kind: 'reveal', r }
+}
+
 export function setupUi() {
   ReactEcsRenderer.setUiRenderer(Root, { virtualWidth: 1920, virtualHeight: 1080 })
 }
@@ -68,6 +81,7 @@ function Root() {
           {screen.kind === 'picker' && <SparkPicker />}
           {screen.kind === 'card' && <AnswerCard s={screen} />}
           {screen.kind === 'toast' && <Toast text={screen.text} />}
+          {screen.kind === 'reveal' && <SparkMatch r={screen.r} />}
         </UiEntity>
       </ScreenInsetArea>
     </UiEntity>
@@ -218,6 +232,65 @@ function AnswerCard(props: { s: Extract<Screen, { kind: 'card' }> }) {
         }}
       >
         <Label value="Not now" fontSize={26} color={DIM} />
+      </UiEntity>
+    </UiEntity>
+  )
+}
+
+function SparkMatch(props: { r: Reveal }) {
+  const { r } = props
+  return (
+    <UiEntity
+      uiTransform={{
+        width: 1100,
+        flexDirection: 'column',
+        alignItems: 'center',
+        padding: 56,
+        pointerFilter: 'block'
+      }}
+      uiBackground={{ color: PANEL }}
+    >
+      <Label value="SPARK MATCH" fontSize={28} color={ACCENT} uiTransform={{ height: 44 }} />
+      <Label value={r.name} fontSize={72} color={INK} uiTransform={{ height: 96, margin: '4px 0 0 0' }} />
+      <Label
+        value={r.line}
+        fontSize={38}
+        color={INK}
+        textAlign="middle-center"
+        uiTransform={{ width: '100%', height: 120, margin: '12px 0 8px 0' }}
+      />
+      {r.sharedSparks.length > 0 && (
+        <UiEntity uiTransform={{ flexDirection: 'row', justifyContent: 'center', margin: '8px 0 0 0' }}>
+          {r.sharedSparks.map((label) => {
+            const spark = SPARKS.find((s) => s.label === label)
+            return (
+              <UiEntity
+                key={label}
+                uiTransform={{ height: 64, padding: '0 22px', margin: 6, justifyContent: 'center', alignItems: 'center' }}
+                uiBackground={{ color: spark ? Color4.fromHexString(spark.color) : PANEL_SOFT }}
+              >
+                <Label value={label} fontSize={28} color={INK} />
+              </UiEntity>
+            )
+          })}
+        </UiEntity>
+      )}
+      <Label value={r.count} fontSize={28} color={DIM} uiTransform={{ height: 48, margin: '20px 0 0 0' }} />
+      <UiEntity
+        uiTransform={{
+          width: 440,
+          height: 96,
+          margin: '28px 0 0 0',
+          justifyContent: 'center',
+          alignItems: 'center',
+          pointerFilter: 'block'
+        }}
+        uiBackground={{ color: ACCENT }}
+        onMouseDown={() => {
+          screen = { kind: 'none' }
+        }}
+      >
+        <Label value="Nice to meet you" fontSize={34} color={Color4.fromHexString('#241B14')} />
       </UiEntity>
     </UiEntity>
   )

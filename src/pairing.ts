@@ -27,6 +27,32 @@ export function chooseTable(sparks: SparkId[], tableCount: number): number {
   return rarest % tableCount
 }
 
+/**
+ * Concurrency-1 pairing partner: the most recent past human at this table
+ * who shares the most with me (overlapScore), read straight off the synced
+ * wall. Returns null only when no other human has ever answered here — and
+ * then pickIcebreaker falls back to a solo prompt exactly as before.
+ */
+export function pastPartnerSparks(
+  mine: SparkId[],
+  wall: { address: string; sparks: string[] }[],
+  myAddress: string
+): SparkId[] | null {
+  let best: SparkId[] | null = null
+  let bestScore = 0
+  for (let i = wall.length - 1; i >= 0; i--) {
+    const e = wall[i]
+    if (e.address === myAddress || !e.sparks || e.sparks.length === 0) continue
+    const theirs = e.sparks as SparkId[]
+    const score = overlapScore(mine, theirs)
+    if (score > bestScore) {
+      bestScore = score
+      best = theirs
+    }
+  }
+  return best
+}
+
 function hashString(s: string): number {
   let h = 0
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0

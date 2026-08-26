@@ -22,6 +22,7 @@ export interface NewWallEntry {
   prompt: string
   answer: string
   author: string
+  sparks: string[]
 }
 
 export interface AnswerAck {
@@ -30,6 +31,8 @@ export interface AnswerAck {
   reason: string
   matchName: string
   matchAnswer: string
+  matchRung: number
+  matchSparks: string[]
   sameCount: number
   totalCount: number
 }

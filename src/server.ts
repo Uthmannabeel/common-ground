@@ -36,11 +36,11 @@ let heartbeatEntity: Entity | null = null
 // Founding entries by the builders (real humans, attributed as such) so no
 // wall ever renders empty. Playtest answers accumulate on top from G5.
 const FOUNDING_WALL: WallEntry[] = [
-  { table: 0, promptId: 'music-1', prompt: 'Your most replayed song this year — what mood is it?', answer: 'Pure hype', author: 'Nabeel · builder', address: 'builder:nabeel', dayIndex: 0 },
-  { table: 1, promptId: 'food-3', prompt: 'Street food at midnight or a long table with strangers?', answer: 'Whichever has music', author: 'Nabeel · builder', address: 'builder:nabeel', dayIndex: 0 },
-  { table: 2, promptId: 'games-1', prompt: 'What actually keeps you playing?', answer: 'My friends are there', author: 'Nabeel · builder', address: 'builder:nabeel', dayIndex: 0 },
-  { table: 3, promptId: 'art-3', prompt: 'Making things is mostly…', answer: 'Suffering that becomes joy', author: 'Nabeel · builder', address: 'builder:nabeel', dayIndex: 0 },
-  { table: -1, promptId: 'daily:A campfire needs one more thing. What?', prompt: 'A campfire needs one more thing. What?', answer: 'Stories', author: 'Nabeel · builder', address: 'builder:nabeel', dayIndex: 0 }
+  { table: 0, promptId: 'music-1', prompt: 'Your most replayed song this year — what mood is it?', answer: 'Pure hype', author: 'Nabeel · builder', address: 'builder:nabeel', dayIndex: 0, sparks: [] },
+  { table: 1, promptId: 'food-3', prompt: 'Street food at midnight or a long table with strangers?', answer: 'Whichever has music', author: 'Nabeel · builder', address: 'builder:nabeel', dayIndex: 0, sparks: [] },
+  { table: 2, promptId: 'games-1', prompt: 'What actually keeps you playing?', answer: 'My friends are there', author: 'Nabeel · builder', address: 'builder:nabeel', dayIndex: 0, sparks: [] },
+  { table: 3, promptId: 'art-3', prompt: 'Making things is mostly…', answer: 'Suffering that becomes joy', author: 'Nabeel · builder', address: 'builder:nabeel', dayIndex: 0, sparks: [] },
+  { table: -1, promptId: 'daily:A campfire needs one more thing. What?', prompt: 'A campfire needs one more thing. What?', answer: 'Stories', author: 'Nabeel · builder', address: 'builder:nabeel', dayIndex: 0, sparks: [] }
 ]
 
 export async function initServer(): Promise<void> {
@@ -160,6 +160,7 @@ function registerHandlers(): void {
     const answer = String(data.answer).trim().slice(0, MAX_ANSWER_LEN)
     const prompt = String(data.prompt).trim().slice(0, MAX_PROMPT_LEN)
     const author = String(data.author).trim().slice(0, MAX_AUTHOR_LEN) || 'a stranger'
+    const sparks = (data.sparks ?? []).slice(0, 3).map((s) => String(s).slice(0, 16))
     if (answer.length === 0 || prompt.length === 0) return
 
     const dayIndex = dayIndexNow(Date.now())
@@ -167,7 +168,7 @@ function registerHandlers(): void {
     if (answered.has(dedupKey)) {
       room.send(
         'answerAck',
-        { promptId, accepted: false, reason: 'You already answered this one today. Come back tomorrow.', matchName: '', matchAnswer: '', sameCount: 0, totalCount: 0 },
+        { promptId, accepted: false, reason: 'You already answered this one today. Come back tomorrow.', matchName: '', matchAnswer: '', matchRung: 0, matchSparks: [], sameCount: 0, totalCount: 0 },
         { to: [context.from] }
       )
       return
@@ -175,18 +176,13 @@ function registerHandlers(): void {
 
     const entries = walls.get(table) ?? []
 
-    // Cross-time Spark Match: the most recent OTHER human with the same answer
-    // to the same prompt. Found before this answer joins the wall.
-    let matchName = ''
-    for (let i = entries.length - 1; i >= 0; i--) {
-      const e = entries[i]
-      if (e.promptId === promptId && e.answer === answer && e.address !== address) {
-        matchName = e.author
-        break
-      }
-    }
+    // Cross-time Spark Match, resolved down a ladder that never dead-ends
+    // while the wall has any other human on it. Found before this answer
+    // joins the wall. Most recent wins within a rung.
+    const match = findMatch(entries, address, promptId, answer, sparks)
+    const matchName = match ? match.entry.author : ''
 
-    entries.push({ table, promptId, prompt, answer, author, address, dayIndex })
+    entries.push({ table, promptId, prompt, answer, author, address, dayIndex, sparks })
     while (entries.length > WALL_CAP) entries.shift()
     walls.set(table, entries)
     answered.add(dedupKey)
@@ -210,10 +206,52 @@ function registerHandlers(): void {
 
     room.send(
       'answerAck',
-      { promptId, accepted: true, reason: '', matchName, matchAnswer: matchName ? answer : '', sameCount, totalCount },
+      {
+        promptId,
+        accepted: true,
+        reason: '',
+        matchName,
+        matchAnswer: match ? match.entry.answer : '',
+        matchRung: match ? match.rung : 0,
+        matchSparks: match ? match.entry.sparks ?? [] : [],
+        sameCount,
+        totalCount
+      },
       { to: [context.from] }
     )
   })
+}
+
+/**
+ * The match ladder. Each rung is a strictly looser test; the first rung with a
+ * hit wins, newest entry first. Rung 4 cannot fail unless this player is the
+ * only human who has ever answered at this board.
+ *   1  same prompt, same answer, shares a spark
+ *   2  same prompt, shares a spark
+ *   3  same prompt, same answer
+ *   4  anyone else on this wall
+ */
+function findMatch(
+  entries: WallEntry[],
+  address: string,
+  promptId: string,
+  answer: string,
+  sparks: string[]
+): { entry: WallEntry; rung: number } | null {
+  const sharesSpark = (e: WallEntry) => (e.sparks ?? []).some((s) => sparks.includes(s))
+  const rungs: ((e: WallEntry) => boolean)[] = [
+    (e) => e.promptId === promptId && e.answer === answer && sharesSpark(e),
+    (e) => e.promptId === promptId && sharesSpark(e),
+    (e) => e.promptId === promptId && e.answer === answer,
+    () => true
+  ]
+  for (let r = 0; r < rungs.length; r++) {
+    for (let i = entries.length - 1; i >= 0; i--) {
+      const e = entries[i]
+      if (e.address !== address && rungs[r](e)) return { entry: e, rung: r + 1 }
+    }
+  }
+  return null
 }
 
 let heartbeatAcc = 0

@@ -13,6 +13,8 @@ export interface WallEntry {
   /** Lowercased wallet address; identity for dedup and cross-time matching. */
   address: string
   dayIndex: number
+  /** The author's spark picks at answer time — lets a later visitor be paired with them. */
+  sparks: string[]
 }
 
 /** Tables 0-3 plus the plaza wall (-1). */

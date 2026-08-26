@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Common Ground — what you love decides where you sit</title>
+<meta name="description" content="A campfire plaza in Decentraland Mobile. Pick three things you love — the fire seats you with strangers who love them too, and gives you your first sentence to say.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,560;1,9..144,400;1,9..144,560&family=Schibsted+Grotesk:wght@400;500;700&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night:#0E1524;
+    --night-deep:#0A101C;
+    --panel:#141D30;
+    --panel-edge:#243149;
+    --ash:#EFE8DA;
+    --smoke:#8D97AB;
+    --ember:#E4572E;
+    --flame:#F3A712;
+    --flame-hi:#FFC46B;
+    --s-music:#E4572E; --s-movies:#F3A712; --s-food:#A8C686; --s-sports:#4C9F70;
+    --s-games:#5C80BC; --s-travel:#30BCED; --s-tech:#9B5DE5; --s-art:#F15BB5;
+    --display:'Fraunces',Georgia,serif;
+    --body:'Schibsted Grotesk','Segoe UI',system-ui,sans-serif;
+    --mono:'Spline Sans Mono',Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--night);color:var(--ash);
+    font-family:var(--body);font-size:17px;line-height:1.6;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  ::selection{background:var(--ember);color:var(--night-deep)}
+  a{color:inherit}
+  :focus-visible{outline:2px solid var(--flame);outline-offset:3px;border-radius:2px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+
+  /* ── header ─────────────────────────────── */
+  header{padding:26px 0}
+  .hrow{display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .wordmark{font-family:var(--display);font-style:italic;font-weight:560;font-size:22px;letter-spacing:.01em;text-decoration:none;white-space:nowrap}
+  .wordmark .dot{color:var(--ember)}
+  nav{display:flex;align-items:center;gap:26px}
+  nav a{font-size:15px;color:var(--smoke);text-decoration:none}
+  nav a:hover{color:var(--ash)}
+  .btn{
+    display:inline-block;font-family:var(--body);font-weight:700;font-size:15px;
+    text-decoration:none;border-radius:999px;padding:12px 22px;
+    border:1px solid var(--ember);transition:transform .15s ease,background .15s ease;
+  }
+  .btn.primary{background:var(--ember);color:#160B06}
+  .btn.primary:hover{background:#F0663D;transform:translateY(-1px)}
+  .btn.ghost{color:var(--ash);border-color:var(--panel-edge)}
+  .btn.ghost:hover{border-color:var(--smoke)}
+  @media(max-width:720px){nav .navlink{display:none}}
+
+  /* ── hero ───────────────────────────────── */
+  .hero{padding:56px 0 30px;display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+  @media(max-width:900px){.hero{grid-template-columns:1fr;gap:40px;padding-top:32px}}
+  .eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.14em;color:var(--flame);text-transform:uppercase;margin-bottom:20px}
+  h1{
+    font-family:var(--display);font-weight:560;font-size:clamp(40px,5.4vw,62px);
+    line-height:1.04;letter-spacing:-.015em;margin-bottom:22px;
+  }
+  h1 em{font-style:italic;color:var(--flame-hi)}
+  .sub{font-size:19px;color:var(--smoke);max-width:44ch;margin-bottom:30px}
+  .sub strong{color:var(--ash);font-weight:500}
+  .ctarow{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+  .honest{font-family:var(--mono);font-size:13px;color:var(--smoke)}
+  .honest b{color:var(--ash);font-weight:500}
+
+  /* ── the ritual (signature) ─────────────── */
+  .ritual{
+    background:var(--panel);border:1px solid var(--panel-edge);border-radius:18px;
+    padding:26px 26px 22px;position:relative;overflow:hidden;
+  }
+  .fireband{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
+  .fire{position:relative;width:58px;height:64px;flex:none}
+  .fire svg{display:block;overflow:visible}
+  .fire .glow{
+    position:absolute;inset:-26px;border-radius:50%;
+    background:var(--flame);opacity:.12;filter:blur(22px);pointer-events:none;
+    transition:opacity .6s ease;
+  }
+  .fire.fed .glow{opacity:.26}
+  .embercount{font-family:var(--mono);font-size:12.5px;color:var(--smoke);text-align:right;line-height:1.5}
+  .embercount b{color:var(--flame-hi);font-weight:500}
+  .rq{font-family:var(--display);font-size:21px;font-weight:560;line-height:1.25;margin-bottom:6px}
+  .rhint{font-size:14px;color:var(--smoke);margin-bottom:16px}
+  .sparkgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  @media(max-width:560px){.sparkgrid{grid-template-columns:repeat(2,1fr)}}
+  .spark{
+    --c:var(--smoke);min-width:0;
+    appearance:none;background:var(--night);border:1px solid var(--panel-edge);
+    border-radius:12px;color:var(--ash);font-family:var(--body);font-size:13.5px;font-weight:500;
+    padding:12px 6px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:7px;
+    transition:border-color .15s,transform .1s,background .15s;
+  }
+  .spark span{text-align:center;line-height:1.25}
+  .spark svg{width:20px;height:20px;stroke:var(--c);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .spark:hover{border-color:var(--c);transform:translateY(-1px)}
+  .spark[aria-pressed="true"]{border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,var(--night));box-shadow:0 0 18px -6px var(--c)}
+  .spark:disabled{opacity:.35;cursor:default;transform:none}
+  .stage{min-height:0}
+  .stage:not(:empty){margin-top:18px}
+  .card{
+    background:var(--night);border:1px solid var(--panel-edge);border-left:3px solid var(--card-c,var(--flame));
+    border-radius:12px;padding:18px 18px 16px;animation:rise .45s ease both;
+  }
+  .card .tag{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--card-c,var(--flame));margin-bottom:8px}
+  .card .prompt{font-family:var(--display);font-size:19px;font-weight:560;line-height:1.3;margin-bottom:14px}
+  .answers{display:flex;flex-direction:column;gap:8px}
+  .answers button{
+    appearance:none;text-align:left;background:transparent;border:1px solid var(--panel-edge);
+    border-radius:9px;color:var(--ash);font-family:var(--body);font-size:15px;padding:10px 14px;cursor:pointer;
+    transition:border-color .15s,background .15s;
+  }
+  .answers button:hover{border-color:var(--card-c,var(--flame))}
+  .lantern-line{display:flex;gap:12px;align-items:flex-start;animation:rise .45s ease both}
+  .lantern{width:26px;flex:none;margin-top:3px}
+  .lantern svg{display:block;overflow:visible}
+  .lantern .flame-fill{filter:drop-shadow(0 0 7px var(--lc,var(--flame)))}
+  .lantern-line p{font-size:15px;color:var(--smoke)}
+  .lantern-line p b{color:var(--ash);font-weight:500}
+  .replay{
+    appearance:none;background:none;border:none;color:var(--flame);font-family:var(--mono);
+    font-size:13px;cursor:pointer;padding:0;margin-top:14px;text-decoration:underline;text-underline-offset:3px;
+  }
+  .demo-note{font-family:var(--mono);font-size:11.5px;color:var(--smoke);opacity:.75;margin-top:18px}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .ember-fly{
+    position:absolute;width:7px;height:7px;border-radius:50%;background:var(--flame-hi);
+    box-shadow:0 0 8px 2px rgba(243,167,18,.55);pointer-events:none;z-index:3;
+  }
+  @media(prefers-reduced-motion:reduce){
+    .card,.lantern-line{animation:none}
+    .ember-fly{display:none}
+    html{scroll-behavior:auto}
+  }
+
+  /* ── trail: the five beats ──────────────── */
+  section{padding:76px 0}
+  .shead{margin-bottom:44px;max-width:56ch}
+  .shead .eyebrow{margin-bottom:12px}
+  h2{font-family:var(--display);font-weight:560;font-size:clamp(28px,3.6vw,40px);line-height:1.12;letter-spacing:-.01em}
+  h2 em{font-style:italic;color:var(--flame-hi)}
+  .slede{color:var(--smoke);margin-top:14px;font-size:17px}
+  .playgrid{display:block}
+  @media(min-width:900px){
+    .playgrid{display:grid;grid-template-columns:5fr 7fr;gap:64px;align-items:start}
+    .playgrid .shead{position:sticky;top:48px;margin-bottom:0}
+  }
+  .trail{list-style:none;position:relative}
+  .trail li{
+    position:relative;padding:0 0 34px 46px;
+  }
+  .trail li::before{ /* the path of light */
+    content:"";position:absolute;left:13px;top:30px;bottom:2px;width:0;
+    border-left:2px dotted color-mix(in srgb,var(--flame) 45%,transparent);
+  }
+  .trail li:last-child::before{display:none}
+  .trail .node{
+    position:absolute;left:0;top:2px;width:28px;height:28px;border-radius:50%;
+    background:var(--panel);border:1px solid var(--flame);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:12px;color:var(--flame-hi);
+  }
+  .trail h3{font-family:var(--display);font-weight:560;font-size:21px;margin-bottom:6px}
+  .trail p{color:var(--smoke);max-width:58ch;font-size:16px}
+  .trail p b{color:var(--ash);font-weight:500}
+
+  /* ── facts band ─────────────────────────── */
+  .facts{
+    border-top:1px solid var(--panel-edge);border-bottom:1px solid var(--panel-edge);
+    padding:40px 0;
+  }
+  .factgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
+  @media(max-width:720px){.factgrid{grid-template-columns:repeat(2,1fr)}}
+  .fact .n{font-family:var(--display);font-weight:560;font-size:42px;line-height:1;color:var(--flame-hi)}
+  .fact .l{font-family:var(--mono);font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--smoke);margin-top:8px}
+  .fact-note{font-family:var(--mono);font-size:12px;color:var(--smoke);opacity:.75;margin-top:26px}
+  .fact-note a{color:var(--smoke)}
+
+  /* ── nobody hosts it ────────────────────── */
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}
+  @media(max-width:840px){.twocol{grid-template-columns:1fr;gap:32px}}
+  .twocol p{color:var(--smoke);margin-bottom:18px}
+  .twocol p b{color:var(--ash);font-weight:500}
+  .speclist{list-style:none;border:1px solid var(--panel-edge);border-radius:14px;overflow:hidden}
+  .speclist li{
+    display:flex;justify-content:space-between;gap:18px;padding:15px 20px;
+    font-size:15px;border-bottom:1px solid var(--panel-edge);
+  }
+  .speclist li:last-child{border-bottom:none}
+  .speclist .k{font-family:var(--mono);font-size:13px;color:var(--smoke);flex:none;padding-top:1px}
+  .speclist .v{text-align:right}
+
+  /* ── footer ─────────────────────────────── */
+  footer{border-top:1px solid var(--panel-edge);padding:44px 0 60px;background:var(--night-deep)}
+  .frow{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:flex-start}
+  .fcol .wordmark{font-size:19px}
+  .fmeta{font-family:var(--mono);font-size:12.5px;color:var(--smoke);margin-top:10px;line-height:1.8}
+  .flinks{display:flex;gap:24px;flex-wrap:wrap}
+  .flinks a{font-size:14px;color:var(--smoke);text-decoration:none}
+  .flinks a:hover{color:var(--ash)}
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <div class="hrow">
+    <a class="wordmark" href="#">Common Ground<span class="dot">.</span></a>
+    <nav>
+      <a class="navlink" href="#play">How it plays</a>
+      <a class="navlink" href="#build">Open build</a>
+      <a class="navlink" href="https://github.com/Uthmannabeel/common-ground">GitHub</a>
+      <a class="btn primary" href="https://decentraland.org/jump/?realm=commonground.dcl.eth">Enter the World</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <div>
+      <p class="eyebrow">A Decentraland World · built for phones</p>
+      <h1>What you love decides <em>where you sit.</em></h1>
+      <p class="sub">Common Ground is a campfire plaza in Decentraland Mobile. Pick three things you love — the fire seats you with strangers who love them too, and <strong>gives you your first sentence to say.</strong></p>
+      <div class="ctarow">
+        <a class="btn primary" href="https://decentraland.org/jump/?realm=commonground.dcl.eth">Enter the World</a>
+        <a class="btn ghost" href="https://github.com/Uthmannabeel/common-ground">Read the code</a>
+      </div>
+      <p class="honest"><b>No typing. No mic. No tutorial.</b> Three taps and the fire does the rest.</p>
+    </div>
+
+    <!-- signature: the page performs the product -->
+    <div class="ritual" id="ritual">
+      <div class="fireband">
+        <div class="fire" id="fire">
+          <span class="glow"></span>
+          <svg width="58" height="64" viewBox="0 0 58 64" aria-hidden="true">
+            <path d="M29 6 C36 16 44 22 44 36 C44 47 37 55 29 55 C21 55 14 47 14 36 C14 27 19 21 22 16 C23 22 26 25 29 24 C27 18 27 12 29 6 Z" fill="#E4572E"/>
+            <path d="M29 26 C33 32 37 35 37 42 C37 48 33 52 29 52 C25 52 21 48 21 42 C21 36 26 33 29 26 Z" fill="#F3A712"/>
+            <path d="M29 38 C31 41 33 43 33 46 C33 49 31 51 29 51 C27 51 25 49 25 46 C25 43 27 41 29 38 Z" fill="#FFC46B"/>
+            <rect x="8" y="55" width="42" height="4" rx="2" fill="#243149"/>
+          </svg>
+        </div>
+        <p class="embercount" id="embercount">every answer ever given<br>adds <b>one ember</b> to this fire</p>
+      </div>
+
+      <div id="picker">
+        <p class="rq">Try it here. Pick three sparks.</p>
+        <p class="rhint" id="pickhint">The same eight emblems that float in the plaza.</p>
+        <div class="sparkgrid" id="sparkgrid" role="group" aria-label="Pick three sparks"></div>
+      </div>
+
+      <div class="stage" id="stage" aria-live="polite"></div>
+      <p class="demo-note">// this demo runs the World's real pairing rule on the real icebreaker bank — nothing here is mocked up for the website</p>
+    </div>
+  </div>
+
+  <!-- the five beats -->
+  <section id="play">
+    <div class="wrap playgrid">
+      <div class="shead">
+        <p class="eyebrow">The first five minutes</p>
+        <h2>A judge arrives alone at 3 a.m. <em>It still works.</em></h2>
+        <p class="slede">The whole loop is five beats, walked in order — which is why they're numbered. Every beat works at concurrency one, and every beat leaves something behind for the next stranger.</p>
+      </div>
+      <ol class="trail">
+        <li>
+          <span class="node">1</span>
+          <h3>Arrive</h3>
+          <p>A night clearing: one fire, eight interest shrines, a ring of lanterns left by <b>real past visitors</b>. No sign-up, no form, no wallet ceremony.</p>
+        </li>
+        <li>
+          <span class="node">2</span>
+          <h3>Declare</h3>
+          <p>Three taps on the shrines for what you love. The sparks settle as <b>glowing charms on your avatar</b> — everyone present can see what you're about before a word is exchanged.</p>
+        </li>
+        <li>
+          <span class="node">3</span>
+          <h3>Answer</h3>
+          <p>One tap-to-answer icebreaker, keyed to your sparks. Your ember arcs into the central fire and <b>the fire visibly grows</b> — it is the sum of every answer ever given here.</p>
+        </li>
+        <li>
+          <span class="node">4</span>
+          <h3>Meet</h3>
+          <p>The World names a real person who answered the same way — <b>"You and Amara both said 'Quiet, please.'"</b> — and a trail of light grows across the ground to their lantern. Live if they're here; across time if they're not.</p>
+        </li>
+        <li>
+          <span class="node">5</span>
+          <h3>Leave a light</h3>
+          <p>You light a lantern addressed to the next stranger who shares your rarest spark. <b>It will be there tomorrow.</b> Someone will find it, the way you found one.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- honest numbers -->
+  <div class="facts">
+    <div class="wrap">
+      <div class="factgrid">
+        <div class="fact"><div class="n">8</div><div class="l">interest sparks</div></div>
+        <div class="fact"><div class="n">52</div><div class="l">authored icebreakers</div></div>
+        <div class="fact"><div class="n">30</div><div class="l">daily questions</div></div>
+        <div class="fact"><div class="n">0</div><div class="l">keystrokes needed</div></div>
+      </div>
+      <p class="fact-note">// counted from <a href="https://github.com/Uthmannabeel/common-ground/tree/master/src/content">src/content/</a> — every number on this page comes from the repository, none are projections</p>
+    </div>
+  </div>
+
+  <!-- nobody hosts it -->
+  <section id="build">
+    <div class="wrap twocol">
+      <div>
+        <p class="eyebrow">Nobody hosts it</p>
+        <h2>The World remembers, <em>so no one has to run it.</em></h2>
+        <p style="margin-top:16px">Most social venues die the moment the event ends. Common Ground doesn't hold events. The server owns every ember, lantern and match — <b>state survives everyone leaving</b>, and the plaza a visitor walks into is the accumulation of every visitor before them.</p>
+        <p>There is deliberately <b>no chat system, no runtime AI, and no external backend</b>. The conversation layer is authored content and shared taps — which means nothing to moderate, nothing to pay for, and nothing that breaks at 3 a.m.</p>
+      </div>
+      <ul class="speclist">
+        <li><span class="k">scene</span><span class="v">Decentraland SDK7 · TypeScript</span></li>
+        <li><span class="k">state</span><span class="v">Decentraland-hosted multiplayer server, authoritative + persistent</span></li>
+        <li><span class="k">pairing</span><span class="v">deterministic spark-overlap scoring — rarest shared spark wins</span></li>
+        <li><span class="k">input</span><span class="v">taps only — no keyboard, no voice, no hover</span></li>
+        <li><span class="k">backend</span><span class="v">none beyond the platform · zero running cost</span></li>
+        <li><span class="k">license</span><span class="v">MIT · fully open source</span></li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap frow">
+    <div class="fcol">
+      <a class="wordmark" href="#">Common Ground<span class="dot">.</span></a>
+      <p class="fmeta">Built in the open for the Decentraland<br>Friendzone Mobile Buildathon · Aug–Sep 2026</p>
+    </div>
+    <div class="flinks">
+      <a href="https://decentraland.org/jump/?realm=commonground.dcl.eth">Enter the World</a>
+      <a href="https://github.com/Uthmannabeel/common-ground">GitHub</a>
+      <a href="https://github.com/Uthmannabeel/common-ground/blob/master/LICENSE">MIT License</a>
+      <a href="https://dorahacks.io/hackathon/friendzone">Friendzone Buildathon</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// The real data, straight from src/content/. Order = rarity (later is rarer),
+// exactly the rule pairing.ts uses for the tiebreak.
+const SPARKS = [
+  {id:'music', label:'Music',          c:'var(--s-music)'},
+  {id:'movies',label:'Movies & Series',c:'var(--s-movies)'},
+  {id:'food',  label:'Food',           c:'var(--s-food)'},
+  {id:'sports',label:'Sports',         c:'var(--s-sports)'},
+  {id:'games', label:'Games',          c:'var(--s-games)'},
+  {id:'travel',label:'Travel',         c:'var(--s-travel)'},
+  {id:'tech',  label:'Tech',           c:'var(--s-tech)'},
+  {id:'art',   label:'Art & Making',   c:'var(--s-art)'}
+];
+const ICONS = {
+  music:'<path d="M7 15V5l9-2v10"/><circle cx="5" cy="15" r="2.2"/><circle cx="14" cy="13" r="2.2"/>',
+  movies:'<rect x="3" y="5" width="14" height="11" rx="1.5"/><path d="M3 8h14M6 5l2 3M10 5l2 3M14 5l2 3"/>',
+  food:'<path d="M4 9c0 4 3 7 6 7s6-3 6-7"/><path d="M3 9h14"/><path d="M10 2c-1 1.4-1 2.6 0 4"/>',
+  sports:'<circle cx="10" cy="10" r="7"/><path d="M10 3c2.5 4 2.5 10 0 14M3.4 8c4-2 9.2-2 13.2 0"/>',
+  games:'<path d="M4 13.5 5 8c.3-1.7 1.6-3 3.4-3h3.2C13.4 5 14.7 6.3 15 8l1 5.5c.2 1.3-.8 2.5-2.1 2.5-.7 0-1.3-.3-1.7-.9L11 13.5H9l-1.2 1.6c-.4.6-1 .9-1.7.9-1.3 0-2.3-1.2-2.1-2.5Z"/><path d="M7 8.5v3M5.5 10h3"/><circle cx="13.2" cy="9.2" r=".4"/><circle cx="14.4" cy="11" r=".4"/>',
+  travel:'<path d="M17 3 9.5 10.5M17 3l-4.5 14-2.5-6.5L3.5 8 17 3Z"/>',
+  tech:'<rect x="5" y="5" width="10" height="10" rx="1.5"/><path d="M8 2v3M12 2v3M8 15v3M12 15v3M2 8h3M2 12h3M15 8h3M15 12h3"/>',
+  art:'<path d="M10 3a7 7 0 1 0 0 14c1.2 0 1.6-.9 1.1-1.8-.5-.9-.1-2.2 1.4-2.2H15a3.5 3.5 0 0 0 2-3C17 6 13.9 3 10 3Z"/><circle cx="7" cy="8" r=".6"/><circle cx="11" cy="6.5" r=".6"/><circle cx="13.6" cy="9.3" r=".6"/>'
+};
+// A verbatim slice of the 52-icebreaker bank (src/content/icebreakers.ts):
+// one solo prompt per spark, plus 12 of the 28 pair prompts so a shared pick lands the pair card.
+const BANK = [
+  {sparks:['music'], prompt:"Your most replayed song this year — what mood is it?", answers:["Pure hype","Soft and sad","Guilty pleasure"]},
+  {sparks:['movies'], prompt:"A perfect movie night is…", answers:["Something that scares me","Something that wrecks me","Something dumb and fun"]},
+  {sparks:['food'], prompt:"Last meal on Earth. What region is cooking?", answers:["West Africa","East Asia","The Mediterranean"]},
+  {sparks:['sports'], prompt:"What are you really watching for?", answers:["The skill","The drama","My team, right or wrong"]},
+  {sparks:['games'], prompt:"What actually keeps you playing?", answers:["Winning","The story","My friends are there"]},
+  {sparks:['travel'], prompt:"Free ticket anywhere, leaves in 3 hours. You pack…", answers:["One bag, zero plan","A full itinerary","Snacks first, then clothes"]},
+  {sparks:['tech'], prompt:"A gadget breaks. Your first move:", answers:["Open it up myself","Search until 2am","Accept its death with grace"]},
+  {sparks:['art'], prompt:"You get one creative superpower:", answers:["Draw anything I imagine","Build anything with my hands","Finish every project I start"]},
+  {sparks:['music','games'], prompt:"Best game soundtrack ever — does it slap outside the game?", answers:["Yes, it's in my rotation","Only while playing","Soundtracks are background, fight me"]},
+  {sparks:['music','movies'], prompt:"A film scene made unforgettable purely by its song. That song was…", answers:["A needle drop I still hunt","The score, no lyrics needed","Silence — the bravest choice"]},
+  {sparks:['music','travel'], prompt:"The airport playlist question: departures sound like…", answers:["Something triumphant","Something melancholy","Podcasts, I'm a fraud"]},
+  {sparks:['food','travel'], prompt:"You travel somewhere ONLY to eat one thing. It's…", answers:["A street stall legend","A grandmother's recipe","A restaurant I can't afford"]},
+  {sparks:['food','movies'], prompt:"The correct cinema snack is…", answers:["Popcorn, obviously","Smuggled real food","Nothing — respect the film"]},
+  {sparks:['games','tech'], prompt:"Graphics, framerate, or the machine that runs both?", answers:["Eye candy first","Smooth or nothing","I just love the hardware"]},
+  {sparks:['games','sports'], prompt:"Sports games: real skill or button luck?", answers:["Real skill, I'd know","Luck wearing a costume","The rematch decides"]},
+  {sparks:['tech','art'], prompt:"AI-made art: tool, threat, or collaborator?", answers:["A new kind of brush","A threat to the craft","Depends who's holding it"]},
+  {sparks:['travel','art'], prompt:"You bring one thing back from every trip:", answers:["Photos, thousands","A sketchbook page","Something I bargained badly for"]},
+  {sparks:['sports','travel'], prompt:"Watch your sport live in its home country — which trip?", answers:["Football in Brazil","Basketball in the States","Anything with a wild home crowd"]},
+  {sparks:['music','art'], prompt:"Album covers: do they change how the music sounds?", answers:["Completely","A little, admit it","I've never looked at one"]},
+  {sparks:['movies','games'], prompt:"Game adaptations of movies, movies of games — who wins?", answers:["Games make better movies now","Movies still can't play fair","Both should stop trying"]}
+];
+
+const grid = document.getElementById('sparkgrid');
+const stage = document.getElementById('stage');
+const hint = document.getElementById('pickhint');
+const fire = document.getElementById('fire');
+const ritual = document.getElementById('ritual');
+let picked = [];
+
+SPARKS.forEach(s=>{
+  const b = document.createElement('button');
+  b.className = 'spark';
+  b.style.setProperty('--c', s.c);
+  b.dataset.id = s.id;
+  b.setAttribute('aria-pressed','false');
+  b.innerHTML = `<svg viewBox="0 0 20 20" aria-hidden="true">${ICONS[s.id]}</svg><span>${s.label}</span>`;
+  b.addEventListener('click',()=>toggle(b,s));
+  grid.appendChild(b);
+});
+
+function toggle(btn,s){
+  const on = btn.getAttribute('aria-pressed')==='true';
+  if(on){ picked = picked.filter(p=>p.id!==s.id); btn.setAttribute('aria-pressed','false'); }
+  else if(picked.length<3){ picked.push(s); btn.setAttribute('aria-pressed','true'); }
+  hint.textContent = picked.length===0 ? 'The same eight emblems that float in the plaza.'
+    : picked.length<3 ? `${3-picked.length} more…` : 'Sparks set. The fire is thinking…';
+  if(picked.length===3) setTimeout(reveal,420);
+}
+
+function pickCard(){
+  // real rule: prefer a pair prompt between the two rarest shared-capable picks,
+  // else the solo prompt of the rarest pick. Rarity = index in SPARKS.
+  const ids = picked.map(p=>p.id);
+  const pairs = BANK.filter(c=>c.sparks.length===2 && c.sparks.every(x=>ids.includes(x)));
+  if(pairs.length) return pairs[Math.floor(Math.random()*pairs.length)];
+  const rarest = [...picked].sort((a,b)=>SPARKS.findIndex(s=>s.id===b.id)-SPARKS.findIndex(s=>s.id===a.id))[0];
+  const solos = BANK.filter(c=>c.sparks.length===1 && c.sparks[0]===rarest.id);
+  return solos[0] || BANK[0];
+}
+
+function reveal(){
+  grid.querySelectorAll('.spark').forEach(b=>{ if(b.getAttribute('aria-pressed')!=='true') b.disabled = true; });
+  const card = pickCard();
+  const cSpark = SPARKS.find(s=>s.id===card.sparks[card.sparks.length-1]);
+  const tag = card.sparks.length===2
+    ? `${SPARKS.find(s=>s.id===card.sparks[0]).label} × ${SPARKS.find(s=>s.id===card.sparks[1]).label}`
+    : cSpark.label;
+  stage.innerHTML = `
+    <div class="card" style="--card-c:${cSpark.c}">
+      <div class="tag">icebreaker · ${tag}</div>
+      <div class="prompt">${card.prompt}</div>
+      <div class="answers">${card.answers.map(a=>`<button>${a}</button>`).join('')}</div>
+    </div>`;
+  stage.querySelectorAll('.answers button').forEach(b=>b.addEventListener('click',()=>answered(b,cSpark)));
+}
+
+function answered(btn,cSpark){
+  flyEmber(btn);
+  const rarest = [...picked].sort((a,b)=>SPARKS.findIndex(s=>s.id===b.id)-SPARKS.findIndex(s=>s.id===a.id))[0];
+  setTimeout(()=>{
+    fire.classList.add('fed');
+    document.getElementById('embercount').innerHTML = 'your ember is in the fire —<br>in the World, <b>it stays</b>';
+    stage.innerHTML = `
+      <div class="lantern-line" style="--lc:${rarest.c}">
+        <div class="lantern">
+          <svg width="26" height="34" viewBox="0 0 26 34">
+            <path d="M9 4h8M13 1v3" stroke="#8D97AB" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <path d="M6 8h14l-2 20H8L6 8Z" fill="none" stroke="#8D97AB" stroke-width="1.5"/>
+            <ellipse class="flame-fill" cx="13" cy="19" rx="3.4" ry="4.6" fill="${varToHex(rarest.c)}"/>
+          </svg>
+        </div>
+        <p><b>In the World, this is where you'd meet someone.</b> Your answer resolves against every past visitor's — a lantern lights in <b style="color:${varToHex(rarest.c)}">${rarest.label}</b>'s colour with a real person's name on it, and a trail leads you there.<button class="replay" type="button">start over</button></p>
+      </div>`;
+    stage.querySelector('.replay').addEventListener('click',reset);
+  }, 620);
+}
+
+function flyEmber(from){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const e = document.createElement('span');
+  e.className = 'ember-fly';
+  const r = from.getBoundingClientRect(), rr = ritual.getBoundingClientRect(), f = fire.getBoundingClientRect();
+  const x0 = r.left-rr.left+r.width/2, y0 = r.top-rr.top+r.height/2;
+  const x1 = f.left-rr.left+f.width/2, y1 = f.top-rr.top+f.height*0.55;
+  e.style.left = x0+'px'; e.style.top = y0+'px';
+  ritual.appendChild(e);
+  e.animate([
+    {transform:'translate(0,0) scale(1)',opacity:1},
+    {transform:`translate(${(x1-x0)*0.5}px,${(y1-y0)*0.5-46}px) scale(.9)`,opacity:1,offset:.55},
+    {transform:`translate(${x1-x0}px,${y1-y0}px) scale(.5)`,opacity:0}
+  ],{duration:620,easing:'cubic-bezier(.3,.7,.4,1)'}).onfinish = ()=>e.remove();
+}
+
+function varToHex(v){
+  const m = {'var(--s-music)':'#E4572E','var(--s-movies)':'#F3A712','var(--s-food)':'#A8C686','var(--s-sports)':'#4C9F70','var(--s-games)':'#5C80BC','var(--s-travel)':'#30BCED','var(--s-tech)':'#9B5DE5','var(--s-art)':'#F15BB5'};
+  return m[v]||'#F3A712';
+}
+
+function reset(){
+  picked = [];
+  stage.innerHTML = '';
+  fire.classList.remove('fed');
+  document.getElementById('embercount').innerHTML = 'every answer ever given<br>adds <b>one ember</b> to this fire';
+  hint.textContent = 'The same eight emblems that float in the plaza.';
+  grid.querySelectorAll('.spark').forEach(b=>{ b.disabled=false; b.setAttribute('aria-pressed','false'); });
+}
+</script>
+</body>
+</html>

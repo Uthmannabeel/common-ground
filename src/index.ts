@@ -2,7 +2,7 @@ import { isServer } from '@dcl/sdk/network'
 import { getPlayer } from '@dcl/sdk/src/players'
 import { todaysQuestion } from './content/dailyQuestions'
 import { SPARK_BY_ID, SparkId } from './content/sparks'
-import { chooseTable, pickIcebreaker } from './pairing'
+import { chooseTable, pastPartnerSparks, pickIcebreaker } from './pairing'
 import { buildPlaza, TABLE_COUNT, TABLE_NAMES } from './plaza'
 // Static imports so registerMessages/defineComponent run at module load on
 // both roles — the engine seals after initial load. Server-only code (which
@@ -10,7 +10,7 @@ import { buildPlaza, TABLE_COUNT, TABLE_NAMES } from './plaza'
 import './shared/messages'
 import './shared/schemas'
 import { store } from './state'
-import { setupUi, showCard, showPicker, showToast } from './ui'
+import { setupUi, showCard, showPicker, showReveal, showToast } from './ui'
 
 function dayIndex(): number {
   return Math.floor(Date.now() / 86_400_000)
@@ -18,6 +18,10 @@ function dayIndex(): number {
 
 function playerName(): string {
   return getPlayer()?.name ?? 'a stranger'
+}
+
+function playerAddress(): string {
+  return (getPlayer()?.userId ?? '').toLowerCase()
 }
 
 export async function main() {
@@ -49,15 +53,19 @@ function onTableTapped(table: number): void {
     showPicker(onSparksConfirmed)
     return
   }
-  // Solo path: the table asks. Live pairing replaces `theirs: null` at G4.
-  const icebreaker = pickIcebreaker(me.sparks, null, dayIndex(), table)
+  // Cross-time pairing: the past human at this table who shares the most
+  // with me decides the prompt, so pair-specific icebreakers are reachable
+  // at concurrency 1. Live pairing (G4) only swaps in a present player here.
+  const theirs = pastPartnerSparks(me.sparks, store.getWallEntries(table), playerAddress())
+  const icebreaker = pickIcebreaker(me.sparks, theirs, dayIndex(), table)
   showCard(`The ${TABLE_NAMES[table]} table asks`, icebreaker.prompt, icebreaker.answers, (answer) => {
     submitAnswer({
       table,
       promptId: icebreaker.id,
       prompt: icebreaker.prompt,
       answer,
-      author: playerName()
+      author: playerName(),
+      sparks: me.sparks
     })
   })
 }
@@ -70,12 +78,13 @@ function onQuestionStandTapped(): void {
       promptId: `daily:${q.prompt}`,
       prompt: q.prompt,
       answer,
-      author: playerName()
+      author: playerName(),
+      sparks: store.getLocalPlayer().sparks
     })
   })
 }
 
-function submitAnswer(entry: { table: number; promptId: string; prompt: string; answer: string; author: string }): void {
+function submitAnswer(entry: { table: number; promptId: string; prompt: string; answer: string; author: string; sparks: string[] }): void {
   store.addWallEntry(entry)
   if (!store.isServerAlive()) {
     showToast('The campfire is still waking up — your answer will catch in a moment.', 5)
@@ -87,6 +96,8 @@ function onAnswerAck(ack: {
   reason: string
   matchName: string
   matchAnswer: string
+  matchRung: number
+  matchSparks: string[]
   sameCount: number
   totalCount: number
 }): void {
@@ -94,13 +105,33 @@ function onAnswerAck(ack: {
     showToast(ack.reason, 5)
     return
   }
-  if (ack.matchName !== '') {
-    // The cross-time Spark Match: a named collision with a real human.
-    showToast(
-      `You and ${ack.matchName} both said "${ack.matchAnswer}" — ${ack.sameCount} of ${ack.totalCount} agree.`,
-      7
-    )
+  if (ack.matchName === '') {
+    // Only possible when this player is the first human ever at this board.
+    showToast('Yours is the first answer here. It waits on the wall for the next stranger.', 6)
     return
   }
-  showToast('Yours is the first answer like that. It waits on the wall for a match.', 6)
+  // The Spark Match: a named collision with a real human, as a screen — not a toast.
+  const mine = store.getLocalPlayer().sparks
+  const shared = mine.filter((s) => ack.matchSparks.includes(s))
+  const sharedLabels = shared.map((s) => SPARK_BY_ID.get(s)?.label ?? s)
+  let line: string
+  switch (ack.matchRung) {
+    case 1:
+      line = `You and ${ack.matchName} both said "${ack.matchAnswer}"`
+      break
+    case 2:
+      line = `${ack.matchName} shares your spark — they said "${ack.matchAnswer}"`
+      break
+    case 3:
+      line = `${ack.matchName} said exactly that too`
+      break
+    default:
+      line = `${ack.matchName} was here before you — they said "${ack.matchAnswer}"`
+  }
+  showReveal({
+    name: ack.matchName,
+    line,
+    sharedSparks: sharedLabels,
+    count: `${ack.sameCount} of ${ack.totalCount} here agree with you`
+  })
 }
