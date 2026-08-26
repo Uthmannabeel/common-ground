@@ -11,6 +11,9 @@
   "worldConfiguration": {
     "name": "commonground.dcl.eth"
   },
+  "logsPermissions": [
+    "0x92e347b0d8003db75aaa7483c800b2819796b8cc"
+  ],
   "contact": {
     "name": "Nabeel Uthman",
     "email": "uthmannabeel@gmail.com"
