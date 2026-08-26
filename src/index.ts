@@ -2,8 +2,10 @@ import { isServer } from '@dcl/sdk/network'
 import { getPlayer } from '@dcl/sdk/src/players'
 import { todaysQuestion } from './content/dailyQuestions'
 import { SPARK_BY_ID, SparkId } from './content/sparks'
+import { emberArc, initEffects, playChime, startAmbience } from './effects'
+import { initLanterns } from './lanterns'
 import { chooseTable, pastPartnerSparks, pickIcebreaker } from './pairing'
-import { buildPlaza, TABLE_COUNT, TABLE_NAMES } from './plaza'
+import { buildPlaza, fireFlare, STAND_POSITION, TABLE_COUNT, TABLE_NAMES, TABLE_POSITIONS } from './plaza'
 // Static imports so registerMessages/defineComponent run at module load on
 // both roles — the engine seals after initial load. Server-only code (which
 // imports @dcl/sdk/server) is dynamically imported inside isServer() instead.
@@ -35,11 +37,14 @@ export async function main() {
   store.initNetwork()
   store.onAnswerAck(onAnswerAck)
   buildPlaza({ onTableTapped, onQuestionStandTapped })
+  initLanterns()
+  initEffects(() => fireFlare())
   setupUi()
   showPicker(onSparksConfirmed)
 }
 
 function onSparksConfirmed(sparks: SparkId[]): void {
+  startAmbience()
   store.setSparks(sparks)
   const table = chooseTable(sparks, TABLE_COUNT)
   store.setTable(table)
@@ -86,6 +91,8 @@ function onQuestionStandTapped(): void {
 
 function submitAnswer(entry: { table: number; promptId: string; prompt: string; answer: string; author: string; sparks: string[] }): void {
   store.addWallEntry(entry)
+  // Your ember arcs from where you answered into the fire, which flares.
+  emberArc(entry.table === -1 ? STAND_POSITION : TABLE_POSITIONS[entry.table])
   if (!store.isServerAlive()) {
     showToast('The campfire is still waking up — your answer will catch in a moment.', 5)
   }
@@ -128,6 +135,7 @@ function onAnswerAck(ack: {
     default:
       line = `${ack.matchName} was here before you — they said "${ack.matchAnswer}"`
   }
+  playChime()
   showReveal({
     name: ack.matchName,
     line,

@@ -10,6 +10,8 @@ import {
   pointerEventsSystem
 } from '@dcl/sdk/ecs'
 import { Color4, Quaternion, Vector3 } from '@dcl/sdk/math'
+import { todaysQuestion } from './content/dailyQuestions'
+import { dayIndexNow } from './shared/types'
 import { store } from './state'
 
 // M1 greybox: primitives + emissive materials only, no asset downloads.
@@ -19,12 +21,14 @@ export const TABLE_COUNT = 4
 
 export const TABLE_NAMES = ['Ember', 'Driftwood', 'Lantern', 'North Star']
 
-const TABLE_POSITIONS = [
+export const TABLE_POSITIONS = [
   Vector3.create(4, 0, 4),
   Vector3.create(12, 0, 4),
   Vector3.create(4, 0, 12),
   Vector3.create(12, 0, 12)
 ]
+
+export const STAND_POSITION = Vector3.create(8, 0, 10.6)
 
 const CENTER = Vector3.create(8, 0, 8)
 
@@ -178,14 +182,16 @@ function buildQuestionStand(handlers: PlazaHandlers): void {
   MeshCollider.setBox(pillar)
   Material.setPbrMaterial(pillar, { albedoColor: STONE, roughness: 1 })
 
+  // The question itself is readable from across the plaza — the retention
+  // mechanic must not hide behind a tap.
   const title = engine.addEntity()
   Transform.create(title, {
-    position: Vector3.create(8, 2.2, 10.6),
+    position: Vector3.create(8, 2.5, 10.6),
     rotation: Quaternion.fromEulerDegrees(0, 180, 0)
   })
   TextShape.create(title, {
-    text: "Today's Question",
-    fontSize: 2,
+    text: `TODAY'S QUESTION\n${wrapText(todaysQuestion(Date.now()).prompt, 26)}`,
+    fontSize: 1.6,
     textColor: Color4.fromHexString('#FFB347')
   })
 
@@ -215,9 +221,37 @@ function buildQuestionStand(handlers: PlazaHandlers): void {
   )
 }
 
+function wrapText(text: string, width: number): string {
+  const words = text.split(' ')
+  const lines: string[] = []
+  let line = ''
+  for (const w of words) {
+    if (line.length + w.length + 1 > width && line.length > 0) {
+      lines.push(line)
+      line = w
+    } else {
+      line = line.length === 0 ? w : `${line} ${w}`
+    }
+  }
+  if (line.length > 0) lines.push(line)
+  return lines.join('\n')
+}
+
+/** "23 answers · latest today" — retention legible in a single visit. */
+function stampFor(entries: { dayIndex: number }[]): string {
+  if (entries.length === 0) return ''
+  const today = dayIndexNow(Date.now())
+  const latest = Math.max(...entries.map((e) => e.dayIndex))
+  const age = today - latest
+  const when = age <= 0 ? 'today' : age === 1 ? 'yesterday' : `${age} days ago`
+  return `${entries.length} answer${entries.length === 1 ? '' : 's'} · latest ${when}`
+}
+
 function formatEntries(table: number, max: number): string {
-  const entries = store.getWallEntries(table).slice(-max).reverse()
-  return entries.map((e) => `"${e.answer}"\n— ${e.author}`).join('\n\n')
+  const all = store.getWallEntries(table)
+  const entries = all.slice(-max).reverse()
+  const body = entries.map((e) => `"${e.answer}"\n— ${e.author}`).join('\n\n')
+  return `${stampFor(all)}\n\n${body}`
 }
 
 function refreshBoards(): void {
@@ -229,10 +263,22 @@ function refreshBoards(): void {
 }
 
 let t = 0
+let flare = 0
+
+/** Momentary surge when an ember lands — decays over ~1.5s. */
+export function fireFlare(strength = 0.5): void {
+  flare = Math.min(1.2, flare + strength)
+}
+
 function flickerSystem(dt: number): void {
   if (!flame) return
   t += dt
-  const s = 1 + 0.12 * Math.sin(t * 9) + 0.06 * Math.sin(t * 23)
+  flare = Math.max(0, flare - dt * 0.8)
+  // The fire visibly grows with every answer ever given: log-scaled so the
+  // first playtests transform it and the thousandth still moves it.
+  const growth = Math.min(0.9, Math.log10(1 + store.getEmbers()) * 0.28)
+  const s = 1 + 0.12 * Math.sin(t * 9) + 0.06 * Math.sin(t * 23) + flare * 0.35
+  const base = 1 + growth + flare * 0.3
   const transform = Transform.getMutable(flame)
-  transform.scale = Vector3.create(0.8 * s, 1.2 * (2 - s), 0.8 * s)
+  transform.scale = Vector3.create(0.8 * base * s, 1.2 * base * (2 - s), 0.8 * base * s)
 }
