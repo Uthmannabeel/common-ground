@@ -1,0 +1,27 @@
+# Changelog
+
+Gate letters refer to the build plan in `docs/process/build-plan-rev-b.md`.
+
+## 2026-09-06
+- UI laid out inside the client's interactable area so no scene button sits under the mobile joystick, chat, or interact button.
+- README rewritten to match the shipped build.
+- Planning trail committed under `docs/process/`.
+
+## 2026-08-29
+- First production deploy to `commonground.dcl.eth`. World reports healthy and accepting users.
+- `logsPermissions` pointed at the NAME-holding wallet.
+
+## 2026-08-26
+- G6 (pulled forward): responsive UI from live canvas info, portrait readability bump, two-column spark grid, always-visible tap cues.
+- G2.5: matched lantern ignites with the stranger's name, trail of light from fire to lantern, avatar charm orbs, story stones replace 2D cards, shared burst for co-present players.
+- G2: lantern field rendered from wall entries, ember arc into a fire that grows with every answer, procedural crackle and chime audio, daily question readable without a tap, count and recency stamps.
+- Spark Match ladder: four rungs that never dead-end, cross-time pairing, full-screen reveal.
+
+## 2026-08-23
+- G1: server-authoritative persistence on the Decentraland Multiplayer Server with `Storage`, heartbeat liveness, checkpointed flush, restart reconciliation, cross-time Spark Match foundation.
+- G0.5: `@dcl/sdk` auth-server branch pinned, `main()` split on `isServer()`.
+- Day-0 eligibility: MIT license, `worldConfiguration`, icebreakers extended to full 28-pair coverage.
+
+## 2026-08-13
+- Walking skeleton: spark picker, pairing, icebreakers, greybox plaza.
+- Project scaffolded from the SDK7 scene template.
