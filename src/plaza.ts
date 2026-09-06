@@ -182,7 +182,7 @@ function buildTable(index: number, handlers: PlazaHandlers): void {
   tableBoards[index] = boardText
 
   pointerEventsSystem.onPointerDown(
-    { entity: top, opts: { button: InputAction.IA_POINTER, hoverText: `Sit at ${TABLE_NAMES[index]}` } },
+    { entity: top, opts: { button: InputAction.IA_POINTER, hoverText: `Get ${TABLE_NAMES[index]}'s question` } },
     () => handlers.onTableTapped(index)
   )
 }

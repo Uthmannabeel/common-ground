@@ -82,6 +82,9 @@ function onTableTapped(table: number): void {
       sparks: me.sparks
     })
   })
+  // Immediate on-screen confirmation: the stones stand beyond the table and
+  // can sit outside a narrow portrait view, so the tap must visibly land.
+  showToast(`Three stones rose behind ${TABLE_NAMES[table]}. Tap one to answer.`, 5)
 }
 
 function onQuestionStandTapped(): void {
@@ -96,6 +99,7 @@ function onQuestionStandTapped(): void {
       sparks: store.getLocalPlayer().sparks
     })
   })
+  showToast('Three stones rose behind the pillar. Tap one to answer.', 5)
 }
 
 function submitAnswer(entry: { table: number; promptId: string; prompt: string; answer: string; author: string; sparks: string[] }): void {
