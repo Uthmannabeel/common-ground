@@ -1,6 +1,6 @@
 import { engine, UiCanvasInformation } from '@dcl/sdk/ecs'
 import { Color4 } from '@dcl/sdk/math'
-import ReactEcs, { Label, ReactEcsRenderer, ScreenInsetArea, UiEntity } from '@dcl/sdk/react-ecs'
+import ReactEcs, { InteractableArea, Label, ReactEcsRenderer, ScreenInsetArea, UiEntity } from '@dcl/sdk/react-ecs'
 import { isMobile } from '@dcl/sdk/platform'
 import { PICKS_REQUIRED, SPARKS, SparkId } from './content/sparks'
 
@@ -21,11 +21,26 @@ const INK_DARK = Color4.fromHexString('#241B14')
 
 const canvas = { width: 1920, height: 1080 }
 
+// The client draws its own HUD over the canvas — mobile: joystick on the
+// left, chat/profile/camera top-right, interaction button bottom-right;
+// desktop: the left ~25%. ScreenInsetArea does NOT avoid those (hardware
+// notches only); the renderer reports them as UiCanvasInformation.
+// interactableArea instead. Every panel is laid out from the area that is
+// left, so no scene button can sit under a client button.
+const area = { width: 1920, height: 1080 }
+
 function canvasSystem() {
   const c = UiCanvasInformation.getOrNull(engine.RootEntity)
   if (c && c.width > 0 && c.height > 0) {
     canvas.width = c.width
     canvas.height = c.height
+    const ia = c.interactableArea
+    const w = c.width - (ia?.left ?? 0) - (ia?.right ?? 0)
+    const h = c.height - (ia?.top ?? 0) - (ia?.bottom ?? 0)
+    // A missing or degenerate report falls back to the full canvas — the
+    // same behaviour as before, never a zero-sized layout.
+    area.width = w > 0 ? w : c.width
+    area.height = h > 0 ? h : c.height
   }
 }
 
@@ -46,15 +61,15 @@ function mobileUi(): boolean {
  * the picker alone stacks ~9 design rows).
  */
 function t(n: number): number {
-  const base = Math.min(canvas.width, canvas.height) / 1080
+  const base = Math.min(area.width, area.height) / 1080
   const bump = portrait() ? 2.2 : mobileUi() ? 1.35 : 1
   return Math.round(n * base * bump)
 }
 
 function panelWidth(desktopMax: number): number {
   return portrait()
-    ? Math.round(canvas.width * 0.94)
-    : Math.min(Math.round(canvas.width * 0.9), t(desktopMax))
+    ? Math.round(area.width * 0.94)
+    : Math.min(Math.round(area.width * 0.9), t(desktopMax))
 }
 
 // --- Screens ----------------------------------------------------------------
@@ -117,21 +132,25 @@ function Root() {
 
   return (
     <UiEntity uiTransform={{ width: '100%', height: '100%' }}>
+      {/* Hardware margins (notch, home bar) outside; client HUD zones inside.
+          The two read different sources and are documented to combine. */}
       <ScreenInsetArea>
-        <UiEntity
-          uiTransform={{
-            width: '100%',
-            height: '100%',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}
-        >
-          {screen.kind === 'picker' && <SparkPicker />}
-          {screen.kind === 'card' && <AnswerCard s={screen} />}
-          {screen.kind === 'toast' && <Toast text={screen.text} />}
-          {screen.kind === 'reveal' && <SparkMatch r={screen.r} />}
-        </UiEntity>
+        <InteractableArea>
+          <UiEntity
+            uiTransform={{
+              width: '100%',
+              height: '100%',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+          >
+            {screen.kind === 'picker' && <SparkPicker />}
+            {screen.kind === 'card' && <AnswerCard s={screen} />}
+            {screen.kind === 'toast' && <Toast text={screen.text} />}
+            {screen.kind === 'reveal' && <SparkMatch r={screen.r} />}
+          </UiEntity>
+        </InteractableArea>
       </ScreenInsetArea>
     </UiEntity>
   )
@@ -385,10 +404,12 @@ function SparkMatch(props: { r: Reveal }) {
 }
 
 function Toast(props: { text: string }) {
-  // Mobile keeps the toast above the client's fixed HUD (interaction button
-  // bottom-right, joystick bottom-left); portrait also gets a smaller font
-  // and a taller box so long spawn toasts wrap to ~3 lines instead of clipping.
-  const bottom = Math.round(canvas.height * (mobileUi() ? 0.22 : 0.13))
+  // The toast is positioned inside the interactable area, so the client HUD
+  // is already excluded when the renderer reports it; the mobile lift stays
+  // as belt-and-braces for a client that reports zero insets. Portrait also
+  // gets a smaller font and a taller box so long spawn toasts wrap to ~3
+  // lines instead of clipping.
+  const bottom = Math.round(area.height * (mobileUi() ? 0.22 : 0.13))
   return (
     <UiEntity
       uiTransform={{
