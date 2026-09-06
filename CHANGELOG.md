@@ -3,6 +3,8 @@
 Gate letters refer to the build plan in `docs/process/build-plan-rev-b.md`.
 
 ## 2026-09-06
+- Redeployed to `commonground.dcl.eth` with the interactable-area UI fix (entity bafkreieigj3gi6jtgqe3hm7hf3dumypml4mjdx4gmzp7b2ql4oz5hdf6z4).
+- JUDGE.md with a two-minute judging path and QR code; repo topics, homepage, and GitHub Pages landing site.
 - UI laid out inside the client's interactable area so no scene button sits under the mobile joystick, chat, or interact button.
 - README rewritten to match the shipped build.
 - Planning trail committed under `docs/process/`.
