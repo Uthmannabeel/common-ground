@@ -6,6 +6,7 @@ Common Ground is a mobile-first social World for [Decentraland](https://decentra
 
 **Play:** https://decentraland.org/jump/?realm=commonground.dcl.eth
 **World:** `commonground.dcl.eth` (in the Decentraland mobile app, search "Common Ground")
+**Judging?** [JUDGE.md](JUDGE.md) is the two-minute path with a QR code.
 
 ## How it plays (no typing, no voice, no tutorial)
 
