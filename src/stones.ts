@@ -58,7 +58,7 @@ export function initStones(): void {
 
     const index = i
     pointerEventsSystem.onPointerDown(
-      { entity: body, opts: { button: InputAction.IA_POINTER, hoverText: 'Answer' } },
+      { entity: body, opts: { button: InputAction.IA_ANY, hoverText: 'Answer' } },
       () => {
         const answer = currentAnswers[index]
         const cb = currentCb

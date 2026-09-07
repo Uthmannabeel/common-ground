@@ -182,7 +182,7 @@ function buildTable(index: number, handlers: PlazaHandlers): void {
   tableBoards[index] = boardText
 
   pointerEventsSystem.onPointerDown(
-    { entity: top, opts: { button: InputAction.IA_POINTER, hoverText: `Get ${TABLE_NAMES[index]}'s question` } },
+    { entity: top, opts: { button: InputAction.IA_ANY, hoverText: `Get ${TABLE_NAMES[index]}'s question` } },
     () => handlers.onTableTapped(index)
   )
 }
@@ -243,7 +243,7 @@ function buildQuestionStand(handlers: PlazaHandlers): void {
   })
 
   pointerEventsSystem.onPointerDown(
-    { entity: pillar, opts: { button: InputAction.IA_POINTER, hoverText: 'Answer today\'s question' } },
+    { entity: pillar, opts: { button: InputAction.IA_ANY, hoverText: 'Answer today\'s question' } },
     () => handlers.onQuestionStandTapped()
   )
 }
