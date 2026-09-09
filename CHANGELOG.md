@@ -2,6 +2,13 @@
 
 Gate letters refer to the build plan in `docs/process/build-plan-rev-b.md`.
 
+## 2026-09-09
+- Redeployed with the first on-device fixes (entity bafkreic4sn7cii65ing73zeovvru3w7y62tfjois67gkugvozy3fnjmmxa).
+
+## 2026-09-07
+- First on-device report: the action button on the phone did nothing at a table. Tap targets now accept any input button, not only the mouse click.
+- Table and pillar labels say what happens ("Get Lantern's question"), and every tap confirms itself with a toast pointing at the stones.
+
 ## 2026-09-06
 - Redeployed to `commonground.dcl.eth` with the interactable-area UI fix (entity bafkreieigj3gi6jtgqe3hm7hf3dumypml4mjdx4gmzp7b2ql4oz5hdf6z4).
 - JUDGE.md with a two-minute judging path and QR code; repo topics, homepage, and GitHub Pages landing site.
