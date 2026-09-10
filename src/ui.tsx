@@ -124,7 +124,11 @@ export function showReveal(r: Reveal): void {
 
 export function setupUi() {
   engine.addSystem(canvasSystem)
-  ReactEcsRenderer.setUiRenderer(Root, { virtualWidth: 1920, virtualHeight: 1080 })
+  // Virtual size 0 is the SDK's documented opt-out of its own contain-fit
+  // scaling. Every numeric size here already derives from the live canvas via
+  // t()/panelWidth(); leaving the virtual screen on multiplied them a second
+  // time (on a phone: canvas/1600 on top of canvas/1080 x portrait bump).
+  ReactEcsRenderer.setUiRenderer(Root, { virtualWidth: 0, virtualHeight: 0 })
 }
 
 function Root() {
