@@ -22,7 +22,7 @@ const SLAB_GLOW = Color4.fromHexString('#FFB347')
 const INK = Color4.fromHexString('#F3E9DC')
 const CENTER = Vector3.create(8, 0, 8)
 const PARKED = Vector3.create(8, -4, 8)
-const MAX_SLABS = 3
+const MAX_SLABS = 4
 
 let promptStone: Entity | null = null
 let promptText: Entity | null = null
@@ -81,9 +81,13 @@ export function showStones(anchor: Vector3, prompt: string, answers: string[], o
   const len = Math.hypot(anchor.x - CENTER.x, anchor.z - CENTER.z) || 1
   const awayX = (anchor.x - CENTER.x) / len
   const awayZ = (anchor.z - CENTER.z) / len
-  // Toward-fire unit vector, used to lift text off its backing face.
-  const inX = -awayX * 0.02
-  const inZ = -awayZ * 0.02
+  // Toward-fire offsets that put text clear of the backing faces: half the
+  // backing depth (prompt 0.18, slab 0.14) plus 1cm of clearance. Anything
+  // less sits inside the box and is occluded by its front face.
+  const pInX = -awayX * 0.1
+  const pInZ = -awayZ * 0.1
+  const sInX = -awayX * 0.08
+  const sInZ = -awayZ * 0.08
 
   const baseX = anchor.x + awayX * 1.6
   const baseZ = anchor.z + awayZ * 1.6
@@ -94,7 +98,7 @@ export function showStones(anchor: Vector3, prompt: string, answers: string[], o
     scale: Vector3.create(2.6, 1.2, 0.18)
   })
   Transform.createOrReplace(promptText, {
-    position: Vector3.create(baseX + inX, 2.15, baseZ + inZ),
+    position: Vector3.create(baseX + pInX, 2.15, baseZ + pInZ),
     rotation: rot
   })
   TextShape.getMutable(promptText).text = wrap(prompt, 30)
@@ -104,7 +108,7 @@ export function showStones(anchor: Vector3, prompt: string, answers: string[], o
   const sideZ = awayX
   const n = currentAnswers.length
   currentAnswers.forEach((answer, i) => {
-    const offset = (i - (n - 1) / 2) * 1.75
+    const offset = (i - (n - 1) / 2) * (n > 3 ? 1.6 : 1.75)
     const x = baseX + sideX * offset
     const z = baseZ + sideZ * offset
     Transform.createOrReplace(slabs[i].body, {
@@ -113,7 +117,7 @@ export function showStones(anchor: Vector3, prompt: string, answers: string[], o
       scale: Vector3.create(1.5, 0.6, 0.14)
     })
     Transform.createOrReplace(slabs[i].text, {
-      position: Vector3.create(x + inX, 1.15, z + inZ),
+      position: Vector3.create(x + sInX, 1.15, z + sInZ),
       rotation: rot
     })
     TextShape.getMutable(slabs[i].text).text = wrap(answer, 18)
