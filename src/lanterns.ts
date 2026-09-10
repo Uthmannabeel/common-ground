@@ -105,12 +105,17 @@ function lanternColor(e: WallEntry): Color4 {
 function lanternPosition(e: WallEntry): Vector3 {
   const h = hashString(entryKey(e))
   const base = BOARD_ANGLE.get(e.table) ?? 0
-  const angle = base + (((h >> 3) % 81) - 40) * (Math.PI / 180)
+  // Unsigned shift: hashString is uint32 and `>>` would turn the top bit into
+  // a negative remainder, pushing the angle outside the +/-40 degree arc.
+  const angle = base + (((h >>> 3) % 81) - 40) * (Math.PI / 180)
   const radius = 7.2 + (h % 3) * 1.1
+  // The scene is 2x2 parcels (0..32m); the outer arc can reach past an edge
+  // near the corners, so clamp to a walkable margin inside the footprint.
+  const clamp = (v: number) => Math.min(31, Math.max(1, v))
   return Vector3.create(
-    CENTER.x + Math.sin(angle) * radius,
+    clamp(CENTER.x + Math.sin(angle) * radius),
     0,
-    CENTER.z + Math.cos(angle) * radius
+    clamp(CENTER.z + Math.cos(angle) * radius)
   )
 }
 
