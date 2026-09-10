@@ -3,6 +3,7 @@
 Gate letters refer to the build plan in `docs/process/build-plan-rev-b.md`.
 
 ## 2026-09-10
+- Redeployed with the audit fixes (entity bafkreib3kwqc72wylff5c3z7pa5as4nax34azyqy2aipd463okv4gijy7e).
 - Acted on an external code audit. UI now uses one coordinate system (SDK virtual scaling opted out). Stones render four answers and their text sits in front of the backing faces. Lantern placement uses an unsigned shift and stays inside the parcel footprint. Server flush is revision-checked so an in-flight save cannot drop a newer answer; every submitted answer is validated against the authored content bank. Table seating now scores real wall overlap.
 - README and JUDGE.md reworded to match: matching memory is the last 40 answers per board, seating is by overlap with past answerers.
 
