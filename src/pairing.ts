@@ -21,8 +21,32 @@ export function sharedSparks(a: SparkId[], b: SparkId[]): SparkId[] {
  * lone visitor with niche picks still lands somewhere that "matches" them.
  * Live pairing (concurrency 2+) replaces this at the sync layer.
  */
-export function chooseTable(sparks: SparkId[], tableCount: number): number {
+/**
+ * Seat by overlap with the people who have actually answered at each table:
+ * the table whose best past contributor shares the most with me wins. With
+ * no overlap anywhere (or an empty World) the rarest spark decides, so the
+ * choice is still deterministic and every table stays reachable.
+ */
+export function chooseTable(
+  sparks: SparkId[],
+  tableCount: number,
+  wallOf: (table: number) => { address: string; sparks: string[] }[] = () => [],
+  myAddress = ''
+): number {
   if (sparks.length === 0) return 0
+  let best = -1
+  let bestScore = 0
+  for (let t = 0; t < tableCount; t++) {
+    for (const e of wallOf(t)) {
+      if (e.address === myAddress || !e.sparks || e.sparks.length === 0) continue
+      const score = overlapScore(sparks, e.sparks as SparkId[])
+      if (score > bestScore) {
+        bestScore = score
+        best = t
+      }
+    }
+  }
+  if (best >= 0) return best
   const rarest = Math.max(...sparks.map(sparkRarity))
   return rarest % tableCount
 }

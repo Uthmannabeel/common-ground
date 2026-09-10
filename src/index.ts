@@ -53,7 +53,7 @@ export async function main() {
 function onSparksConfirmed(sparks: SparkId[]): void {
   startAmbience()
   store.setSparks(sparks)
-  const table = chooseTable(sparks, TABLE_COUNT)
+  const table = chooseTable(sparks, TABLE_COUNT, (t) => store.getWallEntries(t), playerAddress())
   store.setTable(table)
   const labels = sparks.map((s) => SPARK_BY_ID.get(s)?.label).join(', ')
   showToast(`${labels} — your table is ${TABLE_NAMES[table]}. Go sit; it has a question for you.`, 6)
