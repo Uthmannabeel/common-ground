@@ -11,6 +11,8 @@ import {
 import { Color4, Vector3 } from '@dcl/sdk/math'
 import { syncEntity } from '@dcl/sdk/network'
 import { Storage } from '@dcl/sdk/server'
+import { DAILY_QUESTIONS } from './content/dailyQuestions'
+import { ICEBREAKERS } from './content/icebreakers'
 import { SPARK_BY_ID, SparkId } from './content/sparks'
 import { room } from './shared/messages'
 import { CGFire, CGHeartbeat, CGWall } from './shared/schemas'
@@ -38,6 +40,25 @@ let embers = 0
 const answered = new Set<string>()
 /** Storage keys with unflushed changes; kept dirty until a set() returns true. */
 const dirty = new Set<string>()
+/**
+ * Per-key revision, bumped on every change. flush() clears a key only when
+ * the revision it serialized is still current, so an answer that lands while
+ * a slow Storage.set() is in flight can never be un-marked and lost.
+ */
+const rev = new Map<string, number>()
+function markDirty(key: string): void {
+  dirty.add(key)
+  rev.set(key, (rev.get(key) ?? 0) + 1)
+}
+
+/** The authored prompt behind a promptId, or null if the client made it up. */
+function canonicalPrompt(promptId: string): { prompt: string; answers: string[] } | null {
+  if (promptId.startsWith('daily:')) {
+    const text = promptId.slice('daily:'.length)
+    return DAILY_QUESTIONS.find((q) => q.prompt === text) ?? null
+  }
+  return ICEBREAKERS.find((i) => i.id === promptId) ?? null
+}
 
 // Synced entities, adopted from a previous run's CRDT snapshot or created.
 const wallEntities = new Map<number, Entity>()
@@ -84,8 +105,8 @@ async function loadState(): Promise<void> {
   if (total === 0 && embers === 0) {
     for (const entry of FOUNDING_WALL) walls.get(entry.table)?.push(entry)
     embers = FOUNDING_WALL.length
-    for (const table of BOARDS) dirty.add(wallStorageKey(table))
-    dirty.add('embers')
+    for (const table of BOARDS) markDirty(wallStorageKey(table))
+    markDirty('embers')
     console.log('[SERVER] first boot — seeded founding wall entries')
   }
 
@@ -170,10 +191,23 @@ function registerHandlers(): void {
     if (!BOARDS.includes(table)) return
     const promptId = String(data.promptId).slice(0, 120)
     const answer = String(data.answer).trim().slice(0, MAX_ANSWER_LEN)
-    const prompt = String(data.prompt).trim().slice(0, MAX_PROMPT_LEN)
     const author = String(data.author).trim().slice(0, MAX_AUTHOR_LEN) || 'a stranger'
-    const sparks = (data.sparks ?? []).slice(0, 3).map((s) => String(s).slice(0, 16))
-    if (answer.length === 0 || prompt.length === 0) return
+    const sparks = (data.sparks ?? [])
+      .slice(0, 3)
+      .map((s) => String(s).slice(0, 16))
+      .filter((s, i, arr) => SPARK_BY_ID.has(s as SparkId) && arr.indexOf(s) === i)
+    // The stones are choice-only, so the shared wall only ever holds authored
+    // prompts and authored answers; the client's copy of the text is ignored.
+    const canon = canonicalPrompt(promptId)
+    if (!canon || !canon.answers.includes(answer)) {
+      room.send(
+        'answerAck',
+        { promptId, accepted: false, reason: 'That answer is not on the stones.', matchName: '', matchAnswer: '', matchRung: 0, matchSparks: [], matchKey: '', sameCount: 0, totalCount: 0 },
+        { to: [context.from] }
+      )
+      return
+    }
+    const prompt = canon.prompt.slice(0, MAX_PROMPT_LEN)
 
     const dayIndex = dayIndexNow(Date.now())
     const dedupKey = `${address}:${promptId}:${dayIndex}`
@@ -213,8 +247,8 @@ function registerHandlers(): void {
       const fire = CGFire.getMutableOrNull(fireEntity)
       if (fire) fire.embers = embers
     }
-    dirty.add(wallStorageKey(table))
-    dirty.add('embers')
+    markDirty(wallStorageKey(table))
+    markDirty('embers')
 
     room.send(
       'answerAck',
@@ -360,10 +394,17 @@ async function flush(): Promise<void> {
   flushing = true
   try {
     for (const key of [...dirty]) {
+      const serializedRev = rev.get(key)
       const value = key === 'embers' ? String(embers) : JSON.stringify(walls.get(keyTable(key)) ?? [])
-      const ok = await Storage.set(key, value)
-      if (ok) dirty.delete(key)
-      else console.log(`[SERVER] flush failed for ${key} — will retry`)
+      let ok = false
+      try {
+        ok = await Storage.set(key, value)
+      } catch (err) {
+        console.log(`[SERVER] flush threw for ${key}: ${String(err)}`)
+      }
+      if (ok && rev.get(key) === serializedRev) dirty.delete(key)
+      else if (!ok) console.log(`[SERVER] flush failed for ${key} — will retry`)
+      // ok but the revision moved on: stays dirty, the newer state flushes next cycle.
     }
   } finally {
     flushing = false
