@@ -62,45 +62,54 @@ function onSparksConfirmed(sparks: SparkId[]): void {
 function onTableTapped(table: number): void {
   const me = store.getLocalPlayer()
   if (me.sparks.length === 0) {
+    // The picker replaces whatever is on screen, so it is its own message.
     showPicker(onSparksConfirmed)
     return
   }
-  // Cross-time pairing: the past human at this table who shares the most
-  // with me decides the prompt, so pair-specific icebreakers are reachable
-  // at concurrency 1. Live pairing (G4) only swaps in a present player here.
-  const theirs = pastPartnerSparks(me.sparks, store.getWallEntries(table), playerAddress())
-  const icebreaker = pickIcebreaker(me.sparks, theirs, dayIndex(), table)
-  // Story stones: the question and answers are physical tap targets in the
-  // world — the judged path never opens a 2D card.
-  clearTableCue(table)
-  showStones(TABLE_POSITIONS[table], icebreaker.prompt, icebreaker.answers, (answer) => {
-    submitAnswer({
-      table,
-      promptId: icebreaker.id,
-      prompt: icebreaker.prompt,
-      answer,
-      author: playerName(),
-      sparks: me.sparks
+  // Confirmation first: if anything below throws, the player still sees
+  // that the tap landed, and the catch turns the error into a readable toast.
+  showToast(`The stones rose behind ${TABLE_NAMES[table]}. Tap one to answer.`, 5)
+  try {
+    // Cross-time pairing: the past human at this table who shares the most
+    // with me decides the prompt, so pair-specific icebreakers are reachable
+    // at concurrency 1.
+    const theirs = pastPartnerSparks(me.sparks, store.getWallEntries(table), playerAddress())
+    const icebreaker = pickIcebreaker(me.sparks, theirs, dayIndex(), table)
+    // Story stones: the question and answers are physical tap targets in the
+    // world — the judged path never opens a 2D card.
+    clearTableCue(table)
+    showStones(TABLE_POSITIONS[table], icebreaker.prompt, icebreaker.answers, (answer) => {
+      submitAnswer({
+        table,
+        promptId: icebreaker.id,
+        prompt: icebreaker.prompt,
+        answer,
+        author: playerName(),
+        sparks: me.sparks
+      })
     })
-  })
-  // Immediate on-screen confirmation: the stones stand beyond the table and
-  // can sit outside a narrow portrait view, so the tap must visibly land.
-  showToast(`Three stones rose behind ${TABLE_NAMES[table]}. Tap one to answer.`, 5)
+  } catch (err) {
+    showToast(`Something went wrong at the table: ${String(err).slice(0, 120)}`, 8)
+  }
 }
 
 function onQuestionStandTapped(): void {
-  const q = todaysQuestion(Date.now())
-  showStones(STAND_POSITION, q.prompt, q.answers, (answer) => {
-    submitAnswer({
-      table: -1,
-      promptId: `daily:${q.prompt}`,
-      prompt: q.prompt,
-      answer,
-      author: playerName(),
-      sparks: store.getLocalPlayer().sparks
+  showToast('The stones rose in front of the pillar. Tap one to answer.', 5)
+  try {
+    const q = todaysQuestion(Date.now())
+    showStones(STAND_POSITION, q.prompt, q.answers, (answer) => {
+      submitAnswer({
+        table: -1,
+        promptId: `daily:${q.prompt}`,
+        prompt: q.prompt,
+        answer,
+        author: playerName(),
+        sparks: store.getLocalPlayer().sparks
+      })
     })
-  })
-  showToast('Three stones rose behind the pillar. Tap one to answer.', 5)
+  } catch (err) {
+    showToast(`Something went wrong at the pillar: ${String(err).slice(0, 120)}`, 8)
+  }
 }
 
 function submitAnswer(entry: { table: number; promptId: string; prompt: string; answer: string; author: string; sparks: string[] }): void {
@@ -156,10 +165,15 @@ function onAnswerAck(ack: {
   // the accessible summary that follows.
   const lanternPos = igniteLantern(ack.matchKey, ack.matchName)
   if (lanternPos) showTrail(lanternPos)
+  // sameCount includes this player's own answer.
+  const count =
+    ack.sameCount <= 1
+      ? 'You are the first to say that here'
+      : `${ack.sameCount} of ${ack.totalCount} here agree with you`
   showReveal({
     name: ack.matchName,
     line,
     sharedSparks: sharedLabels,
-    count: `${ack.sameCount} of ${ack.totalCount} here agree with you`
+    count
   })
 }
