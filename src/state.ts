@@ -159,11 +159,12 @@ function createStore(): Store & { initNetwork(): void } {
       engine.addSystem(networkSystem)
       room.onMessage('answerAck', (data) => {
         const ack = data as AnswerAck
-        if (!ack.accepted) {
-          // Server refused (e.g. already answered today) — drop the echo.
-          pending = pending.filter((p) => p.promptId !== ack.promptId)
-          for (const l of wallListeners) l()
-        }
+        // Accepted or refused, the server has spoken: drop the local echo for
+        // that prompt. The synced wall (already updated by the same server
+        // tick) is the source of truth from here on.
+        const before = pending.length
+        pending = pending.filter((p) => p.promptId !== ack.promptId)
+        if (pending.length !== before) for (const l of wallListeners) l()
         for (const l of ackListeners) l(ack)
       })
       room.onMessage('matchEvent', (data) => {
