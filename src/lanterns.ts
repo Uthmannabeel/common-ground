@@ -1,4 +1,4 @@
-import { Billboard, engine, Entity, Material, MeshRenderer, TextShape, Transform } from '@dcl/sdk/ecs'
+import { Billboard, BillboardMode, engine, Entity, Material, MeshRenderer, TextShape, Transform } from '@dcl/sdk/ecs'
 import { Color4, Vector3 } from '@dcl/sdk/math'
 import { SPARK_BY_ID, SparkId } from './content/sparks'
 import { WallEntry } from './shared/types'
@@ -72,7 +72,7 @@ export function igniteLantern(key: string, name: string): Vector3 | null {
   if (pos) {
     if (namePlate === null) {
       namePlate = engine.addEntity()
-      Billboard.create(namePlate)
+      Billboard.create(namePlate, { billboardMode: BillboardMode.BM_Y })
       TextShape.create(namePlate, { text: '', fontSize: 1, textColor: Color4.fromHexString('#F3E9DC') })
     }
     Transform.createOrReplace(namePlate, { position: Vector3.create(pos.x, 1.6, pos.z) })

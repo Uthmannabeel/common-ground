@@ -1,4 +1,6 @@
 import {
+  Billboard,
+  BillboardMode,
   engine,
   Entity,
   Transform,
@@ -101,10 +103,12 @@ function buildCampfire(): void {
   })
   // Cone: cylinder with zero top radius.
   MeshRenderer.setCylinder(flame, 0.5, 0)
+  // Intensity 4 drove the cone to white at dusk, so the campfire did not read
+  // as fire at all. A deeper emissive at lower intensity keeps the colour.
   Material.setPbrMaterial(flame, {
     albedoColor: FLAME,
-    emissiveColor: Color4.fromHexString('#FFB347'),
-    emissiveIntensity: 4,
+    emissiveColor: Color4.fromHexString('#FF6A1A'),
+    emissiveIntensity: 1.6,
     roughness: 1
   })
 }
@@ -144,10 +148,10 @@ function buildTable(index: number, handlers: PlazaHandlers): void {
   // 3.1m: above the prompt stone (which spans 1.55-2.75m just beyond the
   // table), so the table name and the question never overlap on screen.
   const sign = engine.addEntity()
-  Transform.create(sign, {
-    position: Vector3.create(pos.x, 3.1, pos.z),
-    rotation: Quaternion.fromEulerDegrees(0, toCenter + 180, 0)
-  })
+  Transform.create(sign, { position: Vector3.create(pos.x, 3.1, pos.z) })
+  // Y-axis billboard: a fixed rotation faces the fire, so every table you are
+  // NOT standing at showed its name mirrored from behind.
+  Billboard.create(sign, { billboardMode: BillboardMode.BM_Y })
   TextShape.create(sign, {
     text: TABLE_NAMES[index],
     fontSize: 3,
@@ -158,10 +162,8 @@ function buildTable(index: number, handlers: PlazaHandlers): void {
   // under the table name. The hoverText stays — it labels the mobile
   // interaction button once the table is aimed at.
   const cue = engine.addEntity()
-  Transform.create(cue, {
-    position: Vector3.create(pos.x, 2.0, pos.z),
-    rotation: Quaternion.fromEulerDegrees(0, toCenter + 180, 0)
-  })
+  Transform.create(cue, { position: Vector3.create(pos.x, 2.0, pos.z) })
+  Billboard.create(cue, { billboardMode: BillboardMode.BM_Y })
   TextShape.create(cue, {
     text: 'tap the table for a question',
     fontSize: 1,
@@ -219,10 +221,8 @@ function buildQuestionStand(handlers: PlazaHandlers): void {
   // The question itself is readable from across the plaza — the retention
   // mechanic must not hide behind a tap.
   const title = engine.addEntity()
-  Transform.create(title, {
-    position: Vector3.create(8, 2.5, 10.6),
-    rotation: Quaternion.fromEulerDegrees(0, 180, 0)
-  })
+  Transform.create(title, { position: Vector3.create(8, 2.5, 10.6) })
+  Billboard.create(title, { billboardMode: BillboardMode.BM_Y })
   TextShape.create(title, {
     text: `TODAY'S QUESTION\n${wrapText(todaysQuestion(Date.now()).prompt, 26)}`,
     fontSize: 1.6,
@@ -255,10 +255,8 @@ function buildQuestionStand(handlers: PlazaHandlers): void {
 
   // Visible tap cue on the fire-facing side of the pillar (touch has no hover).
   const cue = engine.addEntity()
-  Transform.create(cue, {
-    position: Vector3.create(8, 1.2, 10.33),
-    rotation: Quaternion.fromEulerDegrees(0, 180, 0)
-  })
+  Transform.create(cue, { position: Vector3.create(8, 1.2, 10.33) })
+  Billboard.create(cue, { billboardMode: BillboardMode.BM_Y })
   TextShape.create(cue, {
     text: 'tap the pillar to answer',
     fontSize: 1,

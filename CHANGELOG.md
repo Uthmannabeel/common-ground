@@ -3,6 +3,7 @@
 Gate letters refer to the build plan in `docs/process/build-plan-rev-b.md`.
 
 ## 2026-09-11
+- Table names, tap cues and the daily-question title now billboard on the Y axis; with a fixed rotation every sign you were not standing at rendered mirrored. Campfire emissive deepened and dimmed so the flame reads as fire at dusk instead of blowing out to white.
 - Redeployed with the dusk pin (entity bafkreicnzxx5f2n4f7l75oky5rtkakp4rbe2b2mma25t6ckargfjems2za); the content server reports `fixedHour: 68400`.
 - World pinned to dusk (`skyboxConfig.fixedTime`). Under the default day/night cycle a midday visit washed the fire and lanterns out completely and the plaza read as a grey slab.
 - Redeployed with the fresh-question fix (entity bafkreigz65qnpljow2nabbuahxexkfcqdhns2y4mx5izqz22gdepus6th4).
