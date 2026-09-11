@@ -1,6 +1,6 @@
 # Judging Common Ground in two minutes
 
-**A campfire plaza built out of what strangers share.** Playable alone, on a phone, in portrait, with taps only. The World remembers every visitor, so the social payoff fires at concurrency one.
+**A campfire plaza built out of what strangers share.** Playable alone, on a phone, with taps only. The World remembers every visitor, so the social payoff fires at concurrency one.
 
 ## 1. Open the World
 
@@ -14,7 +14,7 @@ Or open the link directly:
 https://decentraland.org/jump/?realm=commonground.dcl.eth
 ```
 
-Portrait and landscape both work. Desktop client works too.
+The mobile app presents the World in landscape; the layout also holds in portrait and on the desktop client.
 
 ## 2. Play (about 90 seconds)
 
@@ -32,7 +32,7 @@ If a second person is present when a match fires, both of you see the same burst
 |---|---|
 | Mobile-First Experience | Designed for one thumb: picker, stones, reveal are all large tap targets; no chat, mic, or keyboard anywhere in the loop |
 | Social Value | Named cross-time matching: "You and Amara both said…" is a real visitor, present or past, so a solo judge still meets someone. The wording tells you how close the match is: same answer, shared spark, or simply someone who was here before you |
-| Mobile UX & Accessibility | UI laid out inside the client's interactable area so nothing sits under the joystick, chat, or interact button; portrait readability bump; visible tap cues because touch has no hover |
+| Mobile UX & Accessibility | UI laid out inside the client's interactable area so nothing sits under the joystick, chat, or interact button; type scaled up for handsets; signs turn to face you; visible tap cues because touch has no hover |
 | Performance | About 1.1 MB total download, primitives and emissive materials only, no textures, no particles, no point lights, two tiny procedural WAVs |
 | Creativity & Originality | The plaza is made of its own data: lanterns are answers, the fire is the total, the match ladder never dead-ends and its wording is honest to how close the match is |
 | Retention & Discovery | Date-rotated daily question readable from the fire, count and recency stamps on every board, and the promise that your answer becomes someone else's match |
