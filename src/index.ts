@@ -27,6 +27,24 @@ function playerAddress(): string {
   return (getPlayer()?.userId ?? '').toLowerCase()
 }
 
+/**
+ * Prompt ids this player has already answered today, read off the synced
+ * walls. The server allows one answer per person per prompt per day, so a
+ * table must offer something they have not used or it dead-ends them.
+ */
+function myAnsweredToday(): Set<string> {
+  const ids = new Set<string>()
+  const me = playerAddress()
+  if (me === '') return ids
+  const today = dayIndex()
+  for (const table of [-1, 0, 1, 2, 3]) {
+    for (const e of store.getWallEntries(table)) {
+      if (e.address === me && e.dayIndex === today) ids.add(e.promptId)
+    }
+  }
+  return ids
+}
+
 export async function main() {
   // Single codebase, two roles: the headless Multiplayer Server owns all
   // shared state; clients render and send intents. See src/server.ts.
@@ -74,7 +92,7 @@ function onTableTapped(table: number): void {
     // with me decides the prompt, so pair-specific icebreakers are reachable
     // at concurrency 1.
     const theirs = pastPartnerSparks(me.sparks, store.getWallEntries(table), playerAddress())
-    const icebreaker = pickIcebreaker(me.sparks, theirs, dayIndex(), table)
+    const icebreaker = pickIcebreaker(me.sparks, theirs, dayIndex(), table, myAnsweredToday())
     // Story stones: the question and answers are physical tap targets in the
     // world — the judged path never opens a 2D card.
     clearTableCue(table)

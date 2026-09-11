@@ -93,28 +93,41 @@ export function pickIcebreaker(
   mine: SparkId[],
   theirs: SparkId[] | null,
   dayIndex: number,
-  table: number
+  table: number,
+  answeredToday: ReadonlySet<string> = new Set()
 ): Icebreaker {
   const seed = hashString(`${dayIndex}:${table}`)
 
+  // Preference order, best first: prompts written for a spark pair this
+  // player shares with the past partner, then that shared spark alone, then
+  // the player's own sparks rarest first, then anything authored.
+  const pools: Icebreaker[][] = []
   if (theirs) {
     const shared = sharedSparks(mine, theirs)
     for (let i = 0; i < shared.length; i++) {
       for (let j = i + 1; j < shared.length; j++) {
-        const pool = pairIcebreakers(shared[i], shared[j])
-        if (pool.length > 0) return pool[seed % pool.length]
+        pools.push(pairIcebreakers(shared[i], shared[j]))
       }
     }
-    if (shared.length > 0) {
-      const pool = soloIcebreakers(shared[0])
-      if (pool.length > 0) return pool[seed % pool.length]
-    }
+    if (shared.length > 0) pools.push(soloIcebreakers(shared[0]))
   }
+  for (const spark of [...mine].sort((a, b) => sparkRarity(b) - sparkRarity(a))) {
+    pools.push(soloIcebreakers(spark))
+  }
+  pools.push(ICEBREAKERS)
 
-  const rarest = [...mine].sort((a, b) => sparkRarity(b) - sparkRarity(a))[0]
-  const pool = soloIcebreakers(rarest)
-  if (pool.length > 0) return pool[seed % pool.length]
-  // Content bank should always cover every spark; if a pool is ever empty,
-  // any prompt beats a crash on `.prompt` of undefined.
+  // One answer per person per prompt per day is the rule, so a table that
+  // kept offering the same question would dead-end every returning visitor
+  // for the rest of the day. Walk the same preference order, skipping what
+  // this player has already answered today.
+  for (const pool of pools) {
+    const fresh = pool.filter((i) => !answeredToday.has(i.id))
+    if (fresh.length > 0) return fresh[seed % fresh.length]
+  }
+  // Every authored prompt used up today: fall back to the plain preference
+  // order. The server refuses it and the player is told to come back.
+  for (const pool of pools) {
+    if (pool.length > 0) return pool[seed % pool.length]
+  }
   return ICEBREAKERS[seed % ICEBREAKERS.length]
 }

@@ -214,7 +214,7 @@ function registerHandlers(): void {
     if (answered.has(dedupKey)) {
       room.send(
         'answerAck',
-        { promptId, accepted: false, reason: 'You already answered this one today. Come back tomorrow.', matchName: '', matchAnswer: '', matchRung: 0, matchSparks: [], matchKey: '', sameCount: 0, totalCount: 0 },
+        { promptId, accepted: false, reason: 'You already answered that one today. Try another table — each one asks something different.', matchName: '', matchAnswer: '', matchRung: 0, matchSparks: [], matchKey: '', sameCount: 0, totalCount: 0 },
         { to: [context.from] }
       )
       return
