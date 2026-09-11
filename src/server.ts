@@ -314,8 +314,17 @@ function findMatch(
 
 const charms = new Map<string, Entity[]>()
 
+/**
+ * Disabled for the judged build. On the mobile client the attached entity's
+ * Transform (offset and 0.09 scale) is not honoured: the first phone run on
+ * 11 Sep showed a single unit-sized sphere engulfing the avatar. Re-enable
+ * once the orb is on a scaled child entity and that has been seen on a phone.
+ */
+const CHARMS_ENABLED = false
+
 function attachCharms(address: string, sparks: SparkId[]): void {
   removeCharms(address)
+  if (!CHARMS_ENABLED) return
   const orbs: Entity[] = []
   sparks.forEach((spark, i) => {
     const color = SPARK_BY_ID.get(spark)?.color
