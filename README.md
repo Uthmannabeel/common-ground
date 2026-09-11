@@ -36,7 +36,7 @@ Everything is a tap. No chat, no mic, no text entry, no runtime AI, no external 
 
 - **Scene:** Decentraland SDK7, TypeScript, one codebase split on `isServer()`.
 - **State:** Decentraland-hosted Multiplayer Server (`authoritativeMultiplayer: true`) with `Storage` persistence. Server-authoritative answer walls (a 40-entry ring per board is the matching memory; per-player-per-prompt-per-day dedup; every answer submitted is validated against the authored content bank), ember count, heartbeat liveness, checkpointed flush, and restart reconciliation. No third-party backend.
-- **Social engine:** deterministic tag-overlap scoring (shared count dominates, rarest shared spark breaks ties) over an authored content bank shipped in the repo: 8 sparks, 53 icebreakers with full 28-pair coverage, 30 daily questions.
+- **Social engine:** deterministic tag-overlap scoring (shared count dominates, rarest shared spark breaks ties) over an authored content bank shipped in the repo: 8 sparks, 52 icebreakers with full 28-pair coverage, 30 daily questions.
 - **Assets:** built entirely from SDK primitives; the two audio files in `assets/audio/` are generated in-repo.
 
 ```
