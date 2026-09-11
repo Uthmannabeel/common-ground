@@ -85,10 +85,15 @@ export function emberArc(from: Vector3): void {
         mode: Tween.Mode.Move({ start: mid, end: FIRE_TOP }),
         duration: ARC_MS / 2,
         easingFunction: EasingFunction.EF_EASEINQUAD
+      },
+      {
+        mode: Tween.Mode.Scale({ start: Vector3.create(0.16, 0.16, 0.16), end: Vector3.Zero() }),
+        duration: 120,
+        easingFunction: EasingFunction.EF_LINEAR
       }
     ]
   })
-  active.push({ entity, endsAt: Date.now() + ARC_MS })
+  active.push({ entity, endsAt: Date.now() + ARC_MS + 200 })
 }
 
 function makeEmber(): Entity {
@@ -198,18 +203,33 @@ export function burstAt(pos: Vector3): void {
   const start = Vector3.create(0.1, 0.1, 0.1)
   const end = Vector3.create(2.4, 2.4, 2.4)
   Transform.createOrReplace(burstEntity, { position: Vector3.create(pos.x, 1.3, pos.z), scale: start })
+  // The tween itself ends at scale zero. On the phone (11 Sep) a burst that
+  // was expanded by a tween and then parked by a plain Transform write stayed
+  // at full size: the renderer kept the tween's final state and ignored the
+  // scene's reset. Letting the tween own the whole grow-then-vanish makes the
+  // sphere disappear even if the park write below is never honoured.
   Tween.createOrReplace(burstEntity, {
     mode: Tween.Mode.Scale({ start, end }),
     duration: 550,
     easingFunction: EasingFunction.EF_EASEOUTQUAD,
     currentTime: 0
   })
-  burstEndsAt = Date.now() + 600
+  TweenSequence.createOrReplace(burstEntity, {
+    sequence: [
+      {
+        mode: Tween.Mode.Scale({ start: end, end: Vector3.Zero() }),
+        duration: 300,
+        easingFunction: EasingFunction.EF_EASEINQUAD
+      }
+    ]
+  })
+  burstEndsAt = Date.now() + 1000
 }
 
 function burstSystem(): void {
   if (burstEndsAt !== 0 && Date.now() >= burstEndsAt && burstEntity !== null) {
     Tween.deleteFrom(burstEntity)
+    TweenSequence.deleteFrom(burstEntity)
     Transform.createOrReplace(burstEntity, { position: Vector3.create(8, -2, 8), scale: Vector3.Zero() })
     burstEndsAt = 0
   }
