@@ -3,6 +3,7 @@
 Gate letters refer to the build plan in `docs/process/build-plan-rev-b.md`.
 
 ## 2026-09-11
+- World pinned to dusk (`skyboxConfig.fixedTime`). Under the default day/night cycle a midday visit washed the fire and lanterns out completely and the plaza read as a grey slab.
 - Redeployed with the fresh-question fix (entity bafkreigz65qnpljow2nabbuahxexkfcqdhns2y4mx5izqz22gdepus6th4).
 - Tables now offer a question the visitor has not answered today instead of dead-ending on the daily one-answer rule.
 - Redeployed with the bug-hunt fixes (entity bafkreifpvqkswnycmfqdewrpujomjy2hbjwywlyenrwfqqwfe5lcrw5sbe).

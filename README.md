@@ -30,6 +30,7 @@ Everything is a tap. No chat, no mic, no text entry, no runtime AI, no external 
 - UI is laid out inside the client's reported interactable area (`UiCanvasInformation.interactableArea`), so no scene button sits under the joystick, chat, or interaction button. Hardware notches are handled separately by `ScreenInsetArea`.
 - Portrait gets a 2.2× readability bump and a two-column spark grid; landscape phones get 1.35×; desktop is unchanged.
 - Always-visible "tap …" cues on tables and the question pillar, because touch has no hover.
+- The World is pinned to dusk, so the fire and the lantern field read as light whatever hour a visitor arrives.
 - Primitives and emissive materials only. No textures, no particle systems, no point lights. Sound is two small procedural WAVs. No SDK features unsupported on the mobile client.
 
 ## Architecture

@@ -9,7 +9,10 @@
   },
   "owner": "Uthmannabeel",
   "worldConfiguration": {
-    "name": "commonground.dcl.eth"
+    "name": "commonground.dcl.eth",
+    "skyboxConfig": {
+      "fixedTime": 68400
+    }
   },
   "logsPermissions": [
     "0x91448bc54e7083c9dfe44c39e327d776f51c79fb"
