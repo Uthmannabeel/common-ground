@@ -46,6 +46,15 @@ export function initLanterns(): void {
  * still real data, just old).
  */
 export function igniteLantern(key: string, name: string): Vector3 | null {
+  if (pinnedKey !== null && pinnedKey !== key) {
+    const prev = lanterns.get(pinnedKey)
+    if (prev) {
+      const m = Material.getMutableOrNull(prev.head)
+      if (m?.material?.$case === 'pbr') m.material.pbr.emissiveIntensity = 2.2
+      const pt = Transform.getMutableOrNull(prev.head)
+      if (pt) pt.scale = Vector3.create(0.26, 0.3, 0.26)
+    }
+  }
   pinnedKey = key
   let lantern = lanterns.get(key)
   if (!lantern) {
