@@ -3,6 +3,7 @@
 Gate letters refer to the build plan in `docs/process/build-plan-rev-b.md`.
 
 ## 2026-09-11
+- Three more phone screenshots confirmed the full loop on device. Table sign raised and cue cleared so they no longer overlap the stones; matched name plate halved. Redeployed.
 - First phone screenshot: tap path confirmed working on device (wall shows answers, lantern standing). Avatar charm orbs disabled: the mobile client ignored their scale and drew one unit-sized sphere around the avatar. Redeployed.
 
 ## 2026-09-10
