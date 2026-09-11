@@ -44,6 +44,8 @@ export interface PlazaHandlers {
 }
 
 let flame: Entity | null = null
+let dailyTitle: Entity | null = null
+let dailyTitleDay = -1
 const tableBoards: Entity[] = []
 const tableCues: Entity[] = []
 let plazaBoard: Entity | null = null
@@ -66,6 +68,7 @@ export function buildPlaza(handlers: PlazaHandlers): void {
   for (let i = 0; i < TABLE_COUNT; i++) buildTable(i, handlers)
   buildQuestionStand(handlers)
   engine.addSystem(flickerSystem)
+  engine.addSystem(dailyRolloverSystem)
   store.onWallChange(refreshBoards)
   refreshBoards()
 }
@@ -225,10 +228,14 @@ function buildQuestionStand(handlers: PlazaHandlers): void {
     fontSize: 1.6,
     textColor: Color4.fromHexString('#FFB347')
   })
+  dailyTitle = title
+  dailyTitleDay = dayIndexNow(Date.now())
 
+  // 13.6, not 11.4: the answer stones rise at z=12.2 in front of the pillar's
+  // board, and at 11.4 the board stood between the player and its own answers.
   const board = engine.addEntity()
   Transform.create(board, {
-    position: Vector3.create(8, 1.4, 11.4),
+    position: Vector3.create(8, 1.4, 13.6),
     rotation: Quaternion.fromEulerDegrees(0, 0, 0),
     scale: Vector3.create(3.2, 2.0, 1)
   })
@@ -237,7 +244,7 @@ function buildQuestionStand(handlers: PlazaHandlers): void {
 
   plazaBoard = engine.addEntity()
   Transform.create(plazaBoard, {
-    position: Vector3.create(8, 1.4, 11.39),
+    position: Vector3.create(8, 1.4, 13.59),
     rotation: Quaternion.fromEulerDegrees(0, 180, 0)
   })
   TextShape.create(plazaBoard, {
@@ -284,7 +291,11 @@ function wrapText(text: string, width: number): string {
 function stampFor(entries: { dayIndex: number }[]): string {
   if (entries.length === 0) return ''
   const today = dayIndexNow(Date.now())
-  const latest = Math.max(...entries.map((e) => e.dayIndex))
+  // Founding entries are stamped dayIndex 0 (no real date); ignore them for
+  // recency. If only those exist, say so instead of "20,000 days ago".
+  const dated = entries.map((e) => e.dayIndex).filter((d) => d > 0)
+  if (dated.length === 0) return `${entries.length} founding answer${entries.length === 1 ? '' : 's'}`
+  const latest = Math.max(...dated)
   const age = today - latest
   const when = age <= 0 ? 'today' : age === 1 ? 'yesterday' : `${age} days ago`
   return `${entries.length} answer${entries.length === 1 ? '' : 's'} · latest ${when}`
@@ -311,6 +322,20 @@ let flare = 0
 /** Momentary surge when an ember lands — decays over ~1.5s. */
 export function fireFlare(strength = 0.5): void {
   flare = Math.min(1.2, flare + strength)
+}
+
+let dayCheckAcc = 0
+
+/** The pillar shows today's question; re-read it when the UTC day changes. */
+function dailyRolloverSystem(dt: number): void {
+  dayCheckAcc += dt
+  if (dayCheckAcc < 30) return
+  dayCheckAcc = 0
+  const day = dayIndexNow(Date.now())
+  if (day === dailyTitleDay || dailyTitle === null) return
+  dailyTitleDay = day
+  const text = TextShape.getMutableOrNull(dailyTitle)
+  if (text) text.text = `TODAY'S QUESTION\n${wrapText(todaysQuestion(Date.now()).prompt, 26)}`
 }
 
 function flickerSystem(dt: number): void {
