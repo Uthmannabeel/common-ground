@@ -45,7 +45,20 @@ export interface PlazaHandlers {
 
 let flame: Entity | null = null
 const tableBoards: Entity[] = []
+const tableCues: Entity[] = []
 let plazaBoard: Entity | null = null
+
+/**
+ * The cue has done its job once the stones are up; left in place it sits in
+ * the same screen space as the answer slabs from the approach side (seen on
+ * the phone, 11 Sep). Cleared for the rest of the visit.
+ */
+export function clearTableCue(index: number): void {
+  const cue = tableCues[index]
+  if (cue === undefined) return
+  const text = TextShape.getMutableOrNull(cue)
+  if (text) text.text = ''
+}
 
 export function buildPlaza(handlers: PlazaHandlers): void {
   buildGround()
@@ -125,9 +138,11 @@ function buildTable(index: number, handlers: PlazaHandlers): void {
     Material.setPbrMaterial(bench, { albedoColor: WOOD, roughness: 0.9 })
   }
 
+  // 3.1m: above the prompt stone (which spans 1.55-2.75m just beyond the
+  // table), so the table name and the question never overlap on screen.
   const sign = engine.addEntity()
   Transform.create(sign, {
-    position: Vector3.create(pos.x, 2.4, pos.z),
+    position: Vector3.create(pos.x, 3.1, pos.z),
     rotation: Quaternion.fromEulerDegrees(0, toCenter + 180, 0)
   })
   TextShape.create(sign, {
@@ -149,6 +164,7 @@ function buildTable(index: number, handlers: PlazaHandlers): void {
     fontSize: 1,
     textColor: CUE
   })
+  tableCues[index] = cue
 
   // Answer wall: a board behind the table, facing the campfire.
   const awayX = pos.x + (pos.x - CENTER.x) * 0.35

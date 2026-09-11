@@ -5,7 +5,7 @@ import { SPARK_BY_ID, SparkId } from './content/sparks'
 import { burstAt, emberArc, initEffects, playChime, showTrail, startAmbience } from './effects'
 import { igniteLantern, initLanterns } from './lanterns'
 import { chooseTable, pastPartnerSparks, pickIcebreaker } from './pairing'
-import { buildPlaza, fireFlare, STAND_POSITION, TABLE_COUNT, TABLE_NAMES, TABLE_POSITIONS } from './plaza'
+import { buildPlaza, clearTableCue, fireFlare, STAND_POSITION, TABLE_COUNT, TABLE_NAMES, TABLE_POSITIONS } from './plaza'
 import { initStones, showStones } from './stones'
 // Static imports so registerMessages/defineComponent run at module load on
 // both roles — the engine seals after initial load. Server-only code (which
@@ -72,6 +72,7 @@ function onTableTapped(table: number): void {
   const icebreaker = pickIcebreaker(me.sparks, theirs, dayIndex(), table)
   // Story stones: the question and answers are physical tap targets in the
   // world — the judged path never opens a 2D card.
+  clearTableCue(table)
   showStones(TABLE_POSITIONS[table], icebreaker.prompt, icebreaker.answers, (answer) => {
     submitAnswer({
       table,

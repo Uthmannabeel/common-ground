@@ -64,9 +64,9 @@ export function igniteLantern(key: string, name: string): Vector3 | null {
     if (namePlate === null) {
       namePlate = engine.addEntity()
       Billboard.create(namePlate)
-      TextShape.create(namePlate, { text: '', fontSize: 2, textColor: Color4.fromHexString('#F3E9DC') })
+      TextShape.create(namePlate, { text: '', fontSize: 1, textColor: Color4.fromHexString('#F3E9DC') })
     }
-    Transform.createOrReplace(namePlate, { position: Vector3.create(pos.x, 1.75, pos.z) })
+    Transform.createOrReplace(namePlate, { position: Vector3.create(pos.x, 1.6, pos.z) })
     TextShape.getMutable(namePlate).text = name
     return Vector3.create(pos.x, 1.14, pos.z)
   }
