@@ -1,3 +1,5 @@
+![Common Ground](images/cover.png)
+
 # Common Ground
 
 **A campfire plaza built out of what strangers share.**
