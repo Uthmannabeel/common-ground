@@ -3,6 +3,7 @@
 Gate letters refer to the build plan in `docs/process/build-plan-rev-b.md`.
 
 ## 2026-09-11
+- Redeployed with the bug-hunt fixes (entity bafkreifpvqkswnycmfqdewrpujomjy2hbjwywlyenrwfqqwfe5lcrw5sbe).
 - Full read-through bug hunt. Every tap now confirms itself before doing any work and reports failures instead of going silent. The daily board no longer hides its own answer stones. Founding entries no longer read as thousands of days old. The pillar re-reads the question at midnight. Local answer echoes clear on any server reply. A new match restores the previously ignited lantern. Match burst and ember tweens end at scale zero so nothing can be left oversized on screen.
 - Three more phone screenshots confirmed the full loop on device. Table sign raised and cue cleared so they no longer overlap the stones; matched name plate halved. Redeployed.
 - First phone screenshot: tap path confirmed working on device (wall shows answers, lantern standing). Avatar charm orbs disabled: the mobile client ignored their scale and drew one unit-sized sphere around the avatar. Redeployed.
